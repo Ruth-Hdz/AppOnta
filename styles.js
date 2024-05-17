@@ -2,11 +2,10 @@ export const colors = {
     azulClarito: '#0094F1',
     naranja: '#FE9526',
     blanco: '#ffffff',
-    rosado: 'F33676',
-    amarillo: 'FFC201',
-    verde: '00C29D',
-    morado: '00C29D',
-    azulFuerte: '01063E',
+    rosado: '#F33676',
+    amarillo: '#00C29D',
+    morado: '#00C29D',
+    azulFuerte: '#01063E',
 
 };
 export const fontStyles = {

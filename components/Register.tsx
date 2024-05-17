@@ -1,102 +1,104 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
 import Background from './Background';
-import { fontStyles } from '../styles'; // Importa fontStyles desde tu archivo de estilos
+import { fontStyles } from '../styles';
+import { Checkbox } from 'react-native-paper';
 
 const Register: React.FC = () => {
     const [nombre, setNombre] = useState('');
     const [correo, setCorreo] = useState('');
     const [contraseña, setContraseña] = useState('');
-    const [aceptaTerminos, setAceptaTerminos] = useState(false); // Estado para los términos y condiciones
+    const [aceptaTerminos, setAceptaTerminos] = useState(false);
 
     return (
-        <View style={{ flex: 1 }}>
-            <Background />
-            <View style={styles.logoContainer}>
-                <Image
-                    source={require('../assets/icon.png')}
-                    style={styles.logo}
+        <KeyboardAvoidingView style={styles.container} behavior="padding">
+        <Background />
+        <View style={styles.logoContainer}>
+            <Image source={require('../assets/logo.jpg')} style={styles.logo} />
+        </View>
+        <Text style={[styles.texto, fontStyles.twCenMT]}>Registro</Text>
+        <View style={styles.formContainer}>
+            <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Nombre</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Escribe tu nombre"
+                    placeholderTextColor="#ffffff"
+                    onChangeText={setNombre}
+                    value={nombre}
                 />
             </View>
-            <Text style={[styles.texto, fontStyles.twCenMT]}>Registro</Text>
-            <View style={styles.formContainer}>
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Escribe tu nombre"
-                        placeholderTextColor="#ffffff"
-                        onChangeText={setNombre}
-                        value={nombre}
-                    />
-                    <Text style={styles.inputLabel}>Nombre</Text>
-                </View>
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="********* "
-                        placeholderTextColor="#ffffff"
-                        secureTextEntry={true}
-                        onChangeText={setContraseña}
-                        value={contraseña}
-                    />
-                    <Text style={styles.inputLabel}>Contraseña</Text>
-                </View>
-                <View style={styles.inputContainer}>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Escribe tu Correo electrónico "
-                        placeholderTextColor="#ffffff"
-                        onChangeText={setCorreo}
-                        value={correo}
-                    />
-                    <Text style={styles.inputLabel}>Correo electrónico</Text>
-                </View>
-                <TouchableOpacity style={styles.checkbox} onPress={() => setAceptaTerminos(!aceptaTerminos)}>
-                    {aceptaTerminos ? (
-                        <View style={styles.checkedBox}></View>
-                    ) : null}
-                </TouchableOpacity>
-                <Text style={styles.terminosText} onPress={() => setAceptaTerminos(!aceptaTerminos)}>Acepto términos y condiciones</Text>
+            <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Contraseña</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="********* "
+                    placeholderTextColor="#ffffff"
+                    secureTextEntry={true}
+                    onChangeText={setContraseña}
+                    value={contraseña}
+                />
             </View>
-            <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Registrar</Text>
-            </TouchableOpacity>
-            <Text style={styles.iniciaSesionText}>¿Ya tienes una cuenta? Inicia Sesión</Text>
+            <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Correo electrónico</Text>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Escribe tu Correo electrónico "
+                    placeholderTextColor="#ffffff"
+                    onChangeText={setCorreo}
+                    value={correo}
+                />
+            </View>
+            <Checkbox.Item
+                label="Acepto Terminos y Condiciones"
+                status={aceptaTerminos ? 'checked' : 'unchecked'}
+                onPress={() => setAceptaTerminos(!aceptaTerminos)}
+                color="#01063E"
+                labelStyle={styles.checkboxLabel}
+            />
         </View>
+        <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Registrar</Text>
+        </TouchableOpacity>
+        <Text style={styles.registrarText}>
+            ¿Ya tienes una cuenta? <Text style={styles.boldText}>Inicia Sesión</Text>
+        </Text>
+    </KeyboardAvoidingView>
+    
     );
 };
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     logoContainer: {
         alignItems: 'center',
-        marginTop: '15%', // Centra verticalmente el logo
+        marginBottom: 10,
+    },
+    boldText: {
+        fontWeight: 'bold',
     },
     logo: {
-        width: 150, // Hace el logo un poco más grande
+        width: 150,
         height: 150,
-        borderRadius: 80, // Hace que el logo sea redondo
+        borderRadius: 80,
     },
     formContainer: {
-        position: 'absolute',
-        top: '35%', // Ajusta la posición del formulario
-        left: '50%',
-        marginLeft: -150, // Centra horizontalmente el formulario
         width: 300,
-        height: 338,
-        backgroundColor: '#0094F1', // Azul especificado
+        backgroundColor: '#0094F1',
         padding: 20,
-        borderRadius: 20,
+        borderRadius: 10,
         alignItems: 'center',
-        justifyContent: 'center', // Centra el contenido verticalmente dentro del contenedor
+        justifyContent: 'center',
     },
     texto: {
-        position: 'absolute',
-        marginTop: 20,
-        top: '25%',
-        left: '35%', // Centra horizontalmente
         fontSize: 30,
         fontWeight: 'bold',
-        color: '#ffffff', // Blanco
+        color: '#ffffff',
+        marginBottom: 16,
     },
     inputContainer: {
         width: '100%',
@@ -104,74 +106,43 @@ const styles = StyleSheet.create({
     },
     input: {
         height: 40,
-        backgroundColor: '#0094F1', 
-        color: '#ffffff', // Texto blanco para los inputs
+        backgroundColor: '#0094F1',
+        color: '#ffffff',
         borderBottomWidth: 1,
         borderBottomColor: '#ffffff',
         padding: 0,
         fontSize: 15,
     },
     inputLabel: {
-        position: 'absolute',
-        left: 0,
-        top: -15, 
         color: '#ffffff',
-        fontSize: 16, 
+        fontSize: 16,
+        fontWeight: 'bold',
     },
-    // Cuadro de aceptación
-    checkbox: {
-        position: 'absolute',
-        left: '15%', 
-        top: '86%', 
-        width: 20,
-        height: 20,
-        borderRadius: 5,
-        borderWidth: 2,
-        borderColor: '#ffffff',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 30,
-    },
-    checkedBox: {
-        width: 10,
-        height: 10,
-        backgroundColor: '#01063E',
-    },
-    // Texto de términos y condiciones
-    terminosText: {
-        position: 'absolute',
-        left: '25%', 
-        top: '85%', 
+    checkboxLabel: {
         color: '#01063E',
-        marginTop: 5, 
+        fontWeight: 'bold',
+        fontSize: 14,
     },
     button: {
-        position: 'absolute',
-        bottom: '16%', // Mueve el botón hacia abajo
-        backgroundColor: '#FFA500', // Naranja
+        backgroundColor: '#FFA500',
         paddingVertical: 15,
         borderRadius: 30,
         alignItems: 'center',
-        width: 180, // Ancho 
-        alignSelf: 'center', 
+        width: 180,
+        marginTop: 20,
     },
     buttonText: {
-        color: '#ffffff', 
+        color: '#ffffff',
         fontWeight: 'bold',
         fontSize: 20,
     },
-    iniciaSesionText: {
+    registrarText: {
         color: '#01063E',
-        fontSize: 16,
-        marginTop: 520, // Ajusta el espacio entre el botón y el texto
-        textAlign: 'center', 
+        fontSize: 14,
+        marginTop: 20,
+        textAlign: 'center',
+        fontWeight: 'regular',
     },
-    terminosContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 20,
-    },
-    
 });
 
 export default Register;
