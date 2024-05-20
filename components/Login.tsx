@@ -35,7 +35,7 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
           <Text style={styles.inputLabel}>Correo electrónico</Text>
           <TextInput
             style={styles.input}
-            placeholder="Escribe tu Correo electrónico"
+            placeholder="Introduce tu Correo Electrónico"
             placeholderTextColor="#ffffff"
             onChangeText={setCorreo}
             value={correo}
@@ -57,7 +57,7 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
         </View>
       </View>
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Iniciar Sesión</Text>
+        <Text style={styles.buttonText}>Inicia Sesión</Text>
       </TouchableOpacity>
 
       <Text style={styles.registrarText}>

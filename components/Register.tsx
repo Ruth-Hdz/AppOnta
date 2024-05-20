@@ -38,7 +38,7 @@ const Register: React.FC<RegisterProps> = ({ navigation }) => {
           <Text style={styles.inputLabel}>Nombre</Text>
           <TextInput
             style={styles.input}
-            placeholder="Escribe tu nombre"
+            placeholder="Introduce tu nombre"
             placeholderTextColor="#ffffff"
             onChangeText={setNombre}
             value={nombre}
@@ -59,7 +59,7 @@ const Register: React.FC<RegisterProps> = ({ navigation }) => {
           <Text style={styles.inputLabel}>Correo electrónico</Text>
           <TextInput
             style={styles.input}
-            placeholder="Escribe tu Correo electrónico "
+            placeholder="Introduce tu Correo Electrónico "
             placeholderTextColor="#ffffff"
             onChangeText={setCorreo}
             value={correo}
