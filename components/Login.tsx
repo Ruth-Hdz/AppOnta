@@ -1,55 +1,74 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 import Background from './Background';
 import { fontStyles } from '../styles';
 
-const Login: React.FC = () => {
-    const [correo, setCorreo] = useState('');
-    const [contraseña, setContraseña] = useState('');
-
-    return (
-        <KeyboardAvoidingView style={styles.container} behavior="padding">
-            <Background />
-            <View style={styles.logoContainer}>
-                <Image source={require('../assets/logo.jpg')} style={styles.logo} />
-            </View>
-            <Text style={[styles.texto, fontStyles.twCenMT]}>Inicio de Sesión</Text>
-            <View style={styles.formContainer}>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Correo electrónico</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Escribe tu Correo electrónico"
-                        placeholderTextColor="#ffffff"
-                        onChangeText={setCorreo}
-                        value={correo}
-                    />
-                </View>
-                <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>Contraseña</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="********* "
-                        placeholderTextColor="#ffffff"
-                        secureTextEntry={true}
-                        onChangeText={setContraseña}
-                        value={contraseña}
-                    />
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
-                    <Text style={styles.olvidasteContraseñaText}>¿Olvidaste tu contraseña?</Text>
-                </View>
-            </View>
-            <TouchableOpacity style={styles.button}>
-                <Text style={styles.buttonText}>Iniciar Sesión</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.registrarText}>
-                ¿No tienes una cuenta? <Text style={styles.boldText}>Regístrate</Text>
-            </Text>
-        </KeyboardAvoidingView>
-    );
+type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
 };
+
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
+type LoginScreenRouteProp = RouteProp<RootStackParamList, 'Login'>;
+
+type LoginProps = {
+  navigation: LoginScreenNavigationProp;
+  route: LoginScreenRouteProp;
+};
+
+const Login: React.FC<LoginProps> = ({ navigation }) => {
+  const [correo, setCorreo] = useState('');
+  const [contraseña, setContraseña] = useState('');
+
+  return (
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <Background />
+      <View style={styles.logoContainer}>
+        <Image source={require('../assets/logo.jpg')} style={styles.logo} />
+      </View>
+      <Text style={[styles.texto, fontStyles.twCenMT]}>Inicio de Sesión</Text>
+      <View style={styles.formContainer}>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Correo electrónico</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Escribe tu Correo electrónico"
+            placeholderTextColor="#ffffff"
+            onChangeText={setCorreo}
+            value={correo}
+          />
+        </View>
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Contraseña</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="********* "
+            placeholderTextColor="#ffffff"
+            secureTextEntry={true}
+            onChangeText={setContraseña}
+            value={contraseña}
+          />
+        </View>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
+          <Text style={styles.olvidasteContraseñaText}>¿Olvidaste tu contraseña?</Text>
+        </View>
+      </View>
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>Iniciar Sesión</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.registrarText}>
+        ¿No tienes una cuenta?
+        <Text style={styles.boldText} onPress={() => navigation.navigate('Register')}> Regístrate</Text>
+      </Text>
+    </KeyboardAvoidingView>
+  );
+};
+
+// ... (el resto del código)
 
 const styles = StyleSheet.create({
     container: {
