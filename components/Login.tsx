@@ -8,8 +8,11 @@ import { fontStyles } from '../styles';
 
 type RootStackParamList = {
   Login: undefined;
-  Register: undefined;
+  Registro: undefined;
+  Inicio: undefined;
+  RecuperarContrasena: undefined;
 };
+
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 type LoginScreenRouteProp = RouteProp<RootStackParamList, 'Login'>;
@@ -53,22 +56,21 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
           />
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', width: '100%' }}>
-          <Text style={styles.olvidasteContraseñaText}>¿Olvidaste tu contraseña?</Text>
+          <Text style={styles.olvidasteContraseñaText} onPress={() => navigation.navigate('RecuperarContrasena')}>¿Olvidaste tu contraseña?</Text>
         </View>
       </View>
       <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Inicia Sesión</Text>
+        <Text style={styles.buttonText} onPress={() => navigation.navigate('Inicio')}>Inicia Sesión</Text>
       </TouchableOpacity>
 
       <Text style={styles.registrarText}>
         ¿No tienes una cuenta?
-        <Text style={styles.boldText} onPress={() => navigation.navigate('Register')}> Regístrate</Text>
+        <Text style={styles.boldText} onPress={() => navigation.navigate('Registro')}> Regístrate</Text>
       </Text>
     </KeyboardAvoidingView>
   );
 };
 
-// ... (el resto del código)
 
 const styles = StyleSheet.create({
     container: {

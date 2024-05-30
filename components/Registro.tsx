@@ -9,18 +9,18 @@ import { Checkbox } from 'react-native-paper';
 
 type RootStackParamList = {
   Login: undefined;
-  Register: undefined;
+  Registro: undefined;
 };
 
-type RegisterScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Register'>;
-type RegisterScreenRouteProp = RouteProp<RootStackParamList, 'Register'>;
+type RegistroScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Registro'>;
+type RegistroScreenRouteProp = RouteProp<RootStackParamList, 'Registro'>;
 
-type RegisterProps = {
-  navigation: RegisterScreenNavigationProp;
-  route: RegisterScreenRouteProp;
+type RegistroProps = {
+  navigation: RegistroScreenNavigationProp;
+  route: RegistroScreenRouteProp;
 };
 
-const Register: React.FC<RegisterProps> = ({ navigation }) => {
+const Registro: React.FC<RegistroProps> = ({ navigation }) => {
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
   const [contraseña, setContraseña] = useState('');
@@ -161,4 +161,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Register;
+export default Registro;
