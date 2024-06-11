@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import Background2 from './Background2';
 import { useNavigation } from '@react-navigation/native';
-import { MailComposer } from 'expo-mail-composer';
+import * as MailComposer from 'expo-mail-composer';
 
 const RecuperarContrasena = () => {
   const [correo, setCorreo] = useState('');
@@ -13,8 +13,7 @@ const RecuperarContrasena = () => {
     navigation.goBack();
   };
 
-  const generarCodigoVerificacion = () => {     
-    // Genera un código de verificación aleatorio (puedes usar una lógica más robusta aquí)
+  const generarCodigoVerificacion = () => {
     const codigoVerificacion = Math.floor(100000 + Math.random() * 900000);
     enviarCodigoVerificacion(correo, codigoVerificacion);
   };
@@ -33,7 +32,6 @@ const RecuperarContrasena = () => {
     }
   };
 
-  
   return (
     <View style={styles.container}>
       <Background2 />
@@ -43,10 +41,14 @@ const RecuperarContrasena = () => {
         </TouchableOpacity>
         <Text style={styles.appTitle}>APP ONTA</Text>
       </View>
-      <Text style={styles.subTitle}>Recuperar Contraseña</Text>
-      <Text style={styles.instructions}>
-        Escribe tu email, a continuación, y te enviaremos un correo electrónico para restablecer la contraseña.
-      </Text>
+
+      <View style={styles.titleContainer}>
+        <Text style={styles.subTitle}>Recuperar Contraseña</Text>
+        <Text style={styles.instructions}>
+          Escribe tu email, a continuación, y te enviaremos un correo electrónico para restablecer la contraseña.
+        </Text>
+      </View>
+
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Correo electrónico</Text>
@@ -58,10 +60,10 @@ const RecuperarContrasena = () => {
             value={correo}
           />
         </View>
+        <TouchableOpacity style={styles.buttonLong} onPress={generarCodigoVerificacion}>
+          <Text style={styles.buttonText}>RECUPERAR CONTRASEÑA</Text>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.buttonLong} onPress={generarCodigoVerificacion}>
-        <Text style={styles.buttonText}>RECUPERAR CONTRASEÑA</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -69,50 +71,48 @@ const RecuperarContrasena = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   header: {
-    position: 'absolute',
-    top: 40,
-    left: 20,
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 40,
+    marginLeft: 20,
   },
   backButton: {
     marginRight: 10,
+    marginTop: 30,
   },
   appTitle: {
     color: 'white',
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
+    marginTop: 30,
+  },
+  titleContainer: {
+    alignItems: 'flex-start',
+    marginTop: 40,
+    marginLeft: 40,
   },
   subTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#ffffff',
-    position: 'absolute',
-    top: 150, // Ajusta la posición superior según sea necesario
-    left: 30, // Pega el texto hacia la izquierda
+    marginBottom: 30,
   },
   instructions: {
-    color: '#FFF',
-    textAlign: 'left', // Alinea el texto a la izquierda
-    marginLeft: 30, // Ajusta el margen izquierdo para que coincida con el título
-    marginRight: 30, // Ajusta el margen derecho si es necesario
-    marginTop: -80, // Ajusta este valor para mover el texto hacia arriba
+    color: '#FFFFFF',
+    fontSize: 14,
+    marginBottom: 70,
   },
   formContainer: {
-    width: 300,
-    backgroundColor: '#0094F1',
-    padding: 20,
-    borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 70, // Añade margen superior para separar el formulario
   },
   inputContainer: {
-    width: '100%',
+    width: 300,
+    backgroundColor: '#0094F1',
+    padding: 30,
+    borderRadius: 10,
+    alignItems: 'flex-start',
     marginBottom: 20,
   },
   input: {
@@ -123,25 +123,24 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ffffff',
     padding: 0,
     fontSize: 15,
-    maxHeight: 100, // Establece la altura máxima deseada
+    maxHeight: 100,
   },
   inputLabel: {
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 5,
   },
   buttonLong: {
     backgroundColor: '#00C29D',
     paddingVertical: 15,
-    paddingHorizontal: 30, // Ajusta este valor según sea necesario para hacer el botón más largo
+    paddingHorizontal: 30,
     borderRadius: 30,
-    alignItems: 'center',
-    marginTop: 20,
   },
   buttonText: {
     color: '#ffffff',
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 18,
   },
 });
 

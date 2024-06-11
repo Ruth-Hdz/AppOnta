@@ -18,15 +18,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     flexDirection: 'column',
-    zIndex: -1, 
+    zIndex: -1,
   },
   blueThird: {
     flex: 1,
-    backgroundColor: '#01063E', 
+    backgroundColor: '#01063E',
   },
   whiteTwoThirds: {
-    flex: 2, 
-    backgroundColor: '#ffffff', 
+    flex: 2,
+    backgroundColor: '#ffffff',
   },
 });
 

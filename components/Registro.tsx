@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import Background from './Background';
-import { fontStyles } from '../styles';
 import { Checkbox } from 'react-native-paper';
 
 type RootStackParamList = {
@@ -27,12 +25,12 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    <View style={styles.container}>
       <Background />
       <View style={styles.logoContainer}>
-        <Image source={require('../assets/logo.jpg')} style={styles.logo} />
+        <Image source={require('../assets/logo.png')} style={styles.logo} />
       </View>
-      <Text style={[styles.texto, fontStyles.twCenMT]}>Registro</Text>
+      <Text style={[styles.texto]}>Registro</Text>
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Nombre</Text>
@@ -65,22 +63,31 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
             value={correo}
           />
         </View>
-        <Checkbox.Item
-          label="Acepto Terminos y Condiciones"
-          status={aceptaTerminos ? 'checked' : 'unchecked'}
-          onPress={() => setAceptaTerminos(!aceptaTerminos)}
-          color="#01063E"
-          labelStyle={styles.checkboxLabel}
-        />
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Checkbox.Item
+                  label=""
+                  status={aceptaTerminos ? 'checked' : 'unchecked'}
+                  onPress={() => setAceptaTerminos(!aceptaTerminos)}
+                  color="#01063E"
+                  uncheckedColor="#01063E"
+                />
+                <Text style={styles.checkboxLabel}>Acepto Terminos y Condiciones</Text>
+              </View>
+
       </View>
-      <TouchableOpacity style={styles.button} onPress={() => console.log('Registrado')}>
-        <Text style={styles.buttonText}>Registrar</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.button} onPress={() => console.log('Registrado')}>
+          <Text style={styles.buttonText}>Registrar</Text>
+        </TouchableOpacity>
+      </View>
       <Text style={styles.registrarText}>
         ¿Ya tienes una cuenta?
-        <Text style={styles.boldText} onPress={() => navigation.navigate('Login')}> Inicia Sesión</Text>
+        <Text style={styles.boldText} onPress={() => navigation.navigate('Login')}>
+          {' '}
+          Inicia Sesión
+        </Text>
       </Text>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -107,17 +114,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#0094F1',
     padding: 20,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   texto: {
     fontSize: 30,
     fontWeight: 'bold',
     color: '#ffffff',
     marginBottom: 14,
+    textAlign: 'center',
   },
   inputContainer: {
-    width: '100%',
     marginBottom: 20,
   },
   input: {
@@ -133,24 +138,28 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 5,
   },
   checkboxLabel: {
     color: '#01063E',
     fontWeight: 'bold',
     fontSize: 14,
   },
+  buttonContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+  },
   button: {
     backgroundColor: '#FFA500',
     paddingVertical: 15,
     borderRadius: 30,
-    alignItems: 'center',
     width: 180,
-    marginTop: 20,
   },
   buttonText: {
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 20,
+    textAlign: 'center',
   },
   registrarText: {
     color: '#01063E',
