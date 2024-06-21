@@ -1,26 +1,37 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, Modal, Pressable } from 'react-native';
+import Background2 from './Background2';
 import { Ionicons } from '@expo/vector-icons';
-import Background from './Background';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from './types';
 
-const Categorias = [
-  { id: '1', nombre: 'Tecnología' },
-  { id: '2', nombre: 'Viajes' },
-  { id: '3', nombre: 'Salud' },
-  { id: '4', nombre: 'Deportes' },
-];
+type CrearCategoriaScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CrearCategoria'>;
 
 const CrearCategoria = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<CrearCategoriaScreenNavigationProp>();
+  const [showModal, setShowModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleBack = () => {
     navigation.goBack();
   };
 
+  const handleGuardar = () => {
+    setSuccessMessage('Guardado con éxito');
+    setShowModal(true);
+  
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSuccessMessage(''); // Limpiar el mensaje de éxito
+    navigation.navigate('Inicio'); // Navegar a la lista de categorías después de cerrar el modal
+  };
+
   return (
     <View style={styles.container}>
-      <Background />
+      <Background2 />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <Ionicons name="arrow-back" size={30} color="white" />
@@ -50,9 +61,29 @@ const CrearCategoria = () => {
           </TouchableOpacity>
         </View>
       </View>
-      <TouchableOpacity style={styles.saveButton}>
+      <TouchableOpacity style={styles.saveButton} onPress={handleGuardar}>
         <Text style={styles.saveButtonText}>Guardar</Text>
       </TouchableOpacity>
+
+      {/* Modal de éxito */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={closeModal as () => void} // Asegurar que closeModal coincida con la firma esperada
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContent}>
+            <View style={styles.successCircle}>
+              <Ionicons name="checkmark" size={60} color="white" />
+            </View>
+            <Text style={styles.modalText}>{successMessage}</Text>
+            <Pressable style={styles.modalCloseButton} onPress={closeModal}>
+              <Ionicons name="close" size={24} color="#01063E" />
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -139,6 +170,44 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  // Estilos para el modal
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%', // Ajusta el ancho según necesites
+    maxHeight: '80%', // Ajusta la altura máxima según necesites
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#01063E',
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 20,
+    color: 'black',
+    textAlign: 'center',
+  },
+  successCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#00C29D',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
   },
 });
 

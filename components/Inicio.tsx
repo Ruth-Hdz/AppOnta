@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Modal, TouchableWithoutFeedback, FlatList, Dimensions } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList, Dimensions, Modal, TouchableWithoutFeedback } from 'react-native';
 import Background from './Background';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
-import { RootStackParamList } from './types'; // Ajusta la ruta si es necesario
+import { RootStackParamList } from './types';
 
-const { width } = Dimensions.get('window'); // Obtenemos el ancho de la pantalla
+const { width } = Dimensions.get('window');
 
 const initialCategoriesData = [
   { id: '1', title: 'Categoría 1', articlesCount: 5, color: '#FFA07A', icon: 'home' },
@@ -35,48 +35,25 @@ const Inicio = () => {
 
   const handleCreateCategory = () => {
     setModalVisible(false);
-    navigation.navigate('CrearCategoria'); // Asegúrate de tener esta ruta definida
+    navigation.navigate('CrearCategoria');
   };
 
   const handleCreateArticle = () => {
     setModalVisible(false);
-    navigation.navigate('CrearArticulo'); // Asegúrate de tener esta ruta definida
+    navigation.navigate('CrearArticulo');
   };
 
-  const handleDeleteCategory = (categoryId) => {
-    setCategories(categories.filter(category => category.id !== categoryId));
+  const handleDeleteCategory = (categoryId: string) => {
+    setCategories(categories.filter((category: { id: string; }) => category.id !== categoryId));
   };
 
-  const handleCategoryPress = (categoryId, categoryTitle) => {
+  const handleCategoryPress = (categoryId: any, categoryTitle: any) => {
     navigation.navigate('ListaCategorias');
   };
 
-  const renderCategoryItem = ({ item }) => (
-    <TouchableOpacity 
-      style={[styles.categoryItem, { backgroundColor: item.color }]}
-      onPress={() => handleCategoryPress(item.id, item.title)}
-    >
-      <Ionicons name={item.icon} size={32} color="#ffffff" style={styles.categoryIcon} />
-      <View style={styles.categoryContent}>
-        <View style={styles.categoryTextContainer}>
-          <Text style={styles.categoryTitle}>{item.title}</Text>
-          <Text style={styles.categoryArticlesCount}>{item.articlesCount} artículos</Text>
-        </View>
-      </View>
-      <View style={styles.categoryIcons}>
-        <TouchableOpacity onPress={() => console.log('Agregar artículo a', item.title)}>
-          <Ionicons name="add" size={24} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
-          <Ionicons name="trash" size={24} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
     <View style={styles.container}>
-      {<Background />}
+      <Background />
       <View style={styles.headerContainer}>
         <View style={styles.textWithIconContainer}>
           <Text style={styles.text1}>Hola,</Text>
@@ -92,6 +69,7 @@ const Inicio = () => {
             placeholder="Buscar..."
             placeholderTextColor="#01063E"
             selectionColor="#01063E"
+            onFocus={() => navigation.navigate('Buscar')} // Navegar a la pantalla de búsqueda
           />
         </View>
         <View style={styles.categoriesHeaderContainer}>
@@ -104,12 +82,34 @@ const Inicio = () => {
 
       <FlatList
         data={categories}
-        renderItem={renderCategoryItem}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.categoryItem, { backgroundColor: item.color }]}
+            onPress={() => handleCategoryPress(item.id, item.title)}
+          >
+            <Ionicons name={item.icon} size={32} color="#ffffff" style={styles.categoryIcon} />
+            <View style={styles.categoryContent}>
+              <View style={styles.categoryTextContainer}>
+                <Text style={styles.categoryTitle}>{item.title}</Text>
+                <Text style={styles.categoryArticlesCount}>{item.articlesCount} artículos</Text>
+              </View>
+            </View>
+            <View style={styles.categoryIcons}>
+              <TouchableOpacity onPress={handleCreateArticle}>
+                <Ionicons name="add" size={24} color="#ffffff" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
+                <Ionicons name="trash" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        )}
         keyExtractor={(item) => item.id}
         numColumns={2}
         contentContainerStyle={styles.categoriesList}
       />
 
+      {/* Modal de Opciones */}
       <Modal
         transparent={true}
         visible={modalVisible}
@@ -192,12 +192,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   categoriesList: {
-    paddingHorizontal: 10, // Ajusta el margen horizontal
-    alignItems: 'center', // Centra horizontalmente el contenido
+    paddingHorizontal: 10,
+    alignItems: 'center',
   },
   categoryItem: {
-    width: (width - 60) / 2, // Ajusta el ancho para que sea la mitad del ancho de la pantalla menos los márgenes
-    height: (width - 60) / 2, // Ajusta la altura para que sea igual al ancho
+    width: (width - 60) / 2,
+    height: (width - 60) / 2,
     margin: 10,
     padding: 20,
     borderRadius: 10,
@@ -253,3 +253,5 @@ const styles = StyleSheet.create({
 });
 
 export default Inicio;
+
+

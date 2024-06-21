@@ -8,9 +8,7 @@ import Background2 from './Background2';
 
 const { width } = Dimensions.get('window');
 
-type RootStackParamList = {
-  Perfil: undefined;
-};
+import { RootStackParamList } from './types'; // Asegúrate de importar correctamente tu definición de tipo
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Perfil'>;
 
@@ -43,7 +41,11 @@ const ListaCategorias = () => {
   };
 
   const formatDate = (date: Date): string => {
-    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    };
     return date.toLocaleDateString('es-ES', options);
   };
 
@@ -91,10 +93,17 @@ const ListaCategorias = () => {
     ] }
   ];
 
-  const renderCategoryItem = ({ item }) => (
-    <View style={[styles.categoryItem, { backgroundColor: item.color }]}>
+  const renderCategoryItem = ({ item }: { item: { id: string; title: string; color: string } }) => (
+    <TouchableOpacity 
+      style={[styles.categoryItem, { backgroundColor: item.color }]} 
+      onPress={() => navigation.navigate('CategoriaSeleccionada', { 
+        categoryId: item.id,
+        categoryTitle: item.title,
+        categoryColor: item.color 
+      })}
+    >
       <Text style={styles.categoryTitle}>{item.title}</Text>
-    </View>
+    </TouchableOpacity>
   );
 
   const toggleStarred = (id: string) => {
@@ -102,21 +111,20 @@ const ListaCategorias = () => {
       prevStarred.includes(id) ? prevStarred.filter(item => item !== id) : [...prevStarred, id]
     );
   };
+  const handleCreateArticle = () => {
+    navigation.navigate('CrearArticulo');
+  };
 
   const handleEllipsisPress = (id: string, y: number, x: number) => {
     setSelectedArticle(id);
   
-    // Obtener las dimensiones de la ventana
     const { height, width } = Dimensions.get('window');
-  
-    // Calcular la posición relativa del modal en relación al ícono de los tres puntos
-    const adjustedX = Math.max(10, Math.min(x - 60, width - 170)); // Ajustar la posición horizontal para evitar salirse de la pantalla
-    const adjustedY = Math.max(10, y - 50); // Ajustar la posición vertical para evitar salirse de la pantalla
+    const adjustedX = Math.max(10, Math.min(x - 60, width - 170));
+    const adjustedY = Math.max(10, y - 50);
   
     setModalPosition({ top: adjustedY, left: adjustedX });
     setModalVisible(true);
   };
-  
 
   const handleEdit = () => {
     console.log('Edit', selectedArticle);
@@ -179,13 +187,14 @@ const ListaCategorias = () => {
       <View style={styles.dateContainer}>
         <View style={styles.dateInfoContainer}>
           <TouchableOpacity onPress={showDatePickerModal}>
-            <Ionicons name="calendar-outline" size={24} color="white" />
+            <Ionicons name="calendar-outline" size={24} color="white"
+          />
           </TouchableOpacity>
           <Text style={styles.labelText}>Fecha:</Text>
           <Text style={styles.selectedDateText}>{formatDate(date)}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.addButton}>
+      <TouchableOpacity style={styles.addButton} onPress={handleCreateArticle}>
         <Ionicons name="add" size={24} color="#01063E" />
       </TouchableOpacity>
 
@@ -353,8 +362,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContainer: {
-    position: 'absolute',  // Permitir que el modal se posicione según top y left
-    backgroundColor: '#37394A', // Cambiado a gris
+    position: 'absolute',
+    backgroundColor: '#37394A',
     borderRadius: 10,
     padding: 10,
     minWidth: 140,
@@ -373,7 +382,7 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     fontSize: 16,
-    color: 'white',  // Cambiado a blanco
+    color: 'white',
   },
   separator: {
     height: 1,
