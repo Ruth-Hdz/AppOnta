@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'react-native';
+import { KeyboardAwareScrollView } from '@codler/react-native-keyboard-aware-scroll-view';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import Background from './Background';
@@ -24,12 +25,12 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
   const [contraseña, setContraseña] = useState('');
 
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView contentContainerStyle={styles.container} extraScrollHeight={100}>
       <Background />
       <View style={styles.logoContainer}>
         <Image source={require('../assets/logo.png')} style={styles.logo} />
       </View>
-      <Text style={[styles.texto]}>Inicia Sesión</Text>
+      <Text style={styles.texto}>Inicia Sesión</Text>
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Correo electrónico</Text>
@@ -68,13 +69,13 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
           Regístrate
         </Text>
       </Text>
-    </View>
+    </KeyboardAwareScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: 300,
-    backgroundColor: '#0094F1',
+    backgroundColor: '#0270D0',
     padding: 20,
     borderRadius: 10,
   },
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    backgroundColor: '#0094F1',
+    backgroundColor: '#0270D0',
     color: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#ffffff',
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   button: {
-    backgroundColor: '#00C29D',
+    backgroundColor: '#00B48C',
     paddingVertical: 15,
     borderRadius: 30,
     width: 180,
@@ -139,14 +140,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   registrarText: {
-    color: '#01063E',
+    color: '#000033',
     fontSize: 14,
     marginTop: 20,
     textAlign: 'center',
     fontWeight: 'regular',
   },
   olvidasteContraseñaText: {
-    color: '#01063E',
+    color: '#000033',
     fontSize: 14,
     fontWeight: 'bold',
     marginTop: 4,

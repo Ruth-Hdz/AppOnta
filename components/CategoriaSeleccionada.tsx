@@ -132,7 +132,7 @@ const CategoriaSeleccionada: React.FC = () => {
           />
         </TouchableOpacity>
         <TouchableOpacity onPress={(e) => handleEllipsisPress(item.id, e.nativeEvent.pageY, e.nativeEvent.pageX)}>
-          <Ionicons name="ellipsis-vertical" size={24} color="#01063E" />
+          <Ionicons name="ellipsis-vertical" size={24} color="#000033" />
         </TouchableOpacity>
       </View>
     </View>
@@ -234,13 +234,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: 'white',
     borderWidth: 2,
-    borderColor: '#01063E',
+    borderColor: '#000033',
     borderRadius: 10,
     padding: 15,
     marginBottom: 10,
   },
   articleTitle: {
-    color: '#01063E',
+    color: '#000033',
     fontSize: 16,
     fontWeight: 'bold',
     flex: 1,

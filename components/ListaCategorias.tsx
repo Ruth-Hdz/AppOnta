@@ -149,7 +149,7 @@ const ListaCategorias = () => {
           />
         </TouchableOpacity>
         <TouchableOpacity onPress={(e) => handleEllipsisPress(item.id, e.nativeEvent.pageY, e.nativeEvent.pageX)}>
-          <Ionicons name="ellipsis-vertical" size={24} color="#01063E" />
+          <Ionicons name="ellipsis-vertical" size={24} color="#000033" />
         </TouchableOpacity>
       </View>
     </View>
@@ -195,7 +195,7 @@ const ListaCategorias = () => {
         </View>
       </View>
       <TouchableOpacity style={styles.addButton} onPress={handleCreateArticle}>
-        <Ionicons name="add" size={24} color="#01063E" />
+        <Ionicons name="add" size={24} color="#000033" />
       </TouchableOpacity>
 
       <View style={{ marginTop: 20, paddingHorizontal: 10 }}>
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
     height: 70,
     backgroundColor: 'white',
     borderWidth: 2,
-    borderColor: '#01063E',
+    borderColor: '#000033',
     borderRadius: 10,
     padding: 10,
     marginBottom: 10,
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   articleTitle: {
-    color: '#01063E',
+    color: '#000033',
     fontSize: 16,
     fontWeight: 'bold',
     flex: 1,

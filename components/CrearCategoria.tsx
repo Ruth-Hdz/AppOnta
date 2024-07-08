@@ -79,7 +79,7 @@ const CrearCategoria = () => {
             </View>
             <Text style={styles.modalText}>{successMessage}</Text>
             <Pressable style={styles.modalCloseButton} onPress={closeModal}>
-              <Ionicons name="close" size={24} color="#01063E" />
+              <Ionicons name="close" size={24} color="#000033" />
             </Pressable>
           </View>
         </View>
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   saveButton: {
-    backgroundColor: '#ffa500',
+    backgroundColor: '#FF7306',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 50,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#01063E',
+    borderColor: '#000033',
   },
   modalText: {
     fontSize: 18,

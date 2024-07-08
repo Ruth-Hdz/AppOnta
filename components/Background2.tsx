@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Dimensions } from 'react-native';
 
 const Background2 = () => {
   return (
@@ -10,22 +10,31 @@ const Background2 = () => {
   );
 };
 
+const windowHeight = Dimensions.get('window').height;
+
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: '100%',
-    height: '100%',
-    flexDirection: 'column',
+    right: 0,
+    bottom: 0,
     zIndex: -1,
   },
   blueThird: {
-    flex: 1,
-    backgroundColor: '#01063E',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: windowHeight / 3,
+    backgroundColor: '#000033',
   },
   whiteTwoThirds: {
-    flex: 2,
+    position: 'absolute',
+    top: windowHeight / 3,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: '#ffffff',
   },
 });

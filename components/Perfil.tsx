@@ -53,7 +53,7 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
       </View>
       <View style={styles.sectionContainer}>
         <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>Nombre:</Text>
+          <Text style={styles.sectionTitle}>Nombre: </Text>
           {isEditingName ? (
             <TextInput
               value={nombre}
@@ -64,7 +64,7 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.sectionContent}>{nombre}</Text>
           )}
           <TouchableOpacity onPress={() => setIsEditingName(!isEditingName)}>
-            <Ionicons name={isEditingName ? "checkmark" : "create"} size={24} color="#01063E" />
+            <Ionicons name={isEditingName ? "checkmark" : "create"} size={24} color="#000033" />
           </TouchableOpacity>
         </View>
         <View style={styles.separator} />
@@ -80,7 +80,7 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.sectionContent}>{correo}</Text>
           )}
           <TouchableOpacity onPress={() => setIsEditingEmail(!isEditingEmail)}>
-            <Ionicons name={isEditingEmail ? "checkmark" : "create"} size={24} color="#01063E" />
+            <Ionicons name={isEditingEmail ? "checkmark" : "create"} size={24} color="#000033" />
           </TouchableOpacity>
         </View>
         <View style={styles.separator} />
@@ -88,14 +88,14 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Contraseña:</Text>
           <Text style={styles.sectionContent}>{showPassword ? contraseña : '********'.slice(0, 9)}</Text>
           <TouchableOpacity onPress={togglePasswordVisibility}>
-            <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={24} color="#01063E" />
+            <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={24} color="#000033" />
           </TouchableOpacity>
         </View>
         <View style={styles.separator} />
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>Cambiar Contraseña</Text>
           <TouchableOpacity onPress={CambiarContrasena}>
-            <Ionicons name="create" size={24} color="#01063E" />
+            <Ionicons name="create" size={24} color="#000033" />
           </TouchableOpacity>
         </View>
         <View style={styles.logoutButtonContainer}>
@@ -159,11 +159,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#01063E',
+    color: '#000033',
   },
   separator: {
     height: 1,
-    backgroundColor: '#01063E',
+    backgroundColor: '#000033',
     marginBottom: 30,
   },
   input: {
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   sectionContent: {
     flex: 1,
     fontSize: 17,
-    color: '#01063E',
+    color: '#000033',
   },
 });
 

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
+import { Picker } from '@react-native-picker/picker';
 
 type CrearArticuloScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CrearArticulo'>;
 
@@ -12,6 +13,7 @@ const CrearArticulo = () => {
   const navigation = useNavigation<CrearArticuloScreenNavigationProp>();
   const [showModal, setShowModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
 
   const handleBack = () => {
     navigation.goBack();
@@ -24,9 +26,23 @@ const CrearArticulo = () => {
 
   const closeModal = () => {
     setShowModal(false);
-    setSuccessMessage('Guardado Correctamente');
-    navigation.navigate('ListaCategorias'); 
+    setSuccessMessage(''); // Limpiar el mensaje de éxito
+    navigation.navigate('ListaCategorias'); // Navegar a la lista de categorías después de cerrar el modal
   };
+
+  // Opciones de categorías
+  const categorias = [
+    { label: 'Casa', value: 'Casa' },
+    { label: 'Trabajo', value: 'Trabajo' },
+    { label: 'Universidad', value: 'Universidad' },
+    { label: 'Compras', value: 'Compras' },
+    { label: 'Salud', value: 'Salud' },
+    { label: 'Random', value: 'Random' },
+    { label: 'Categoría 7', value: 'Categoría 7' },
+    { label: 'Categoría 8', value: 'Categoría 8' },
+    { label: 'Categoría 9', value: 'Categoría 9' },
+    { label: 'Categoría 10', value: 'Categoría 10' },
+  ];
 
   return (
     <View style={styles.container}>
@@ -46,12 +62,20 @@ const CrearArticulo = () => {
       <View style={styles.box}>
         {/* TextInput para la categoría con ícono de flecha desplegable */}
         <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Categoría"
-            editable={false}
-          />
-          <Ionicons name="chevron-down" size={24} color="#01063E" style={styles.dropdownIcon} />
+          <Picker
+            selectedValue={categoriaSeleccionada}
+            style={styles.pickerInput} // Aplica los estilos directamente al Picker
+            onValueChange={(itemValue, itemIndex) =>
+              setCategoriaSeleccionada(itemValue)
+            }>
+            {categorias.map((categoria, index) => (
+              <Picker.Item
+                key={index}
+                label={categoria.label}
+                value={categoria.value}
+              />
+            ))}
+          </Picker>
         </View>
         {/* TextInput para el título */}
         <TextInput
@@ -84,7 +108,7 @@ const CrearArticulo = () => {
             </View>
             <Text style={styles.modalText}>{successMessage}</Text>
             <Pressable style={styles.modalCloseButton} onPress={closeModal}>
-              <Ionicons name="close" size={24} color="#01063E" />
+              <Ionicons name="close" size={24} color="#000033" />
             </Pressable>
           </View>
         </View>
@@ -138,7 +162,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   inputContainer: {
-    position: 'relative',
+    borderWidth: 2,
+    borderRadius: 5,
+    borderColor: '#000033',
+    marginBottom: 10,
+    backgroundColor: '#ffffff',
   },
   input: {
     borderWidth: 2,
@@ -147,32 +175,31 @@ const styles = StyleSheet.create({
     width: '100%',
     marginBottom: 10,
     backgroundColor: '#ffffff',
-    color: '#01063E',
+    color: '#000033', // Color del texto
+  },
+  pickerInput: {
+    width: '100%',
+    color: '#000033', // Color del texto
   },
   inputTitle: {
     marginTop: 10,
+    color: '#000033', // Color del texto
   },
   largeInput: {
     height: 150,
     textAlignVertical: 'top',
-  },
-  dropdownIcon: {
-    position: 'absolute',
-    right: 10,
-    alignSelf: 'center',
-    top: '50%',
-    transform: [{ translateY: -12 }],
+    color: '#000033', // Color del texto
   },
   saveButton: {
-    backgroundColor: '#ffa500',
+    backgroundColor: '#FF7306',
     paddingVertical: 15,
     paddingHorizontal: 40,
     borderRadius: 50,
-    marginTop: 10,
+    marginTop: 20,
     alignSelf: 'center',
   },
   saveButtonText: {
-    color: '#01063E',
+    color: '#000000',
     fontSize: 18,
     fontWeight: 'bold',
   },
@@ -192,7 +219,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#01063E',
+    borderColor: '#000033',
   },
   modalText: {
     fontSize: 18,

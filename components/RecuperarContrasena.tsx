@@ -5,19 +5,23 @@ import Background2 from './Background2';
 import { useNavigation } from '@react-navigation/native';
 import * as MailComposer from 'expo-mail-composer';
 
+// Componente principal para la pantalla de recuperación de contraseña
 const RecuperarContrasena = () => {
-  const [correo, setCorreo] = useState('');
-  const navigation = useNavigation();
+  const [correo, setCorreo] = useState(''); // Estado para almacenar el correo electrónico del usuario
+  const navigation = useNavigation(); // Hook para la navegación
 
+  // Función para volver a la pantalla anterior
   const handleBack = () => {
     navigation.goBack();
   };
 
+  // Función para generar un código de verificación aleatorio
   const generarCodigoVerificacion = () => {
-    const codigoVerificacion = Math.floor(100000 + Math.random() * 900000);
+    const codigoVerificacion = Math.floor(100000 + Math.random() * 900000); // Genera un número de 6 dígitos
     enviarCodigoVerificacion(correo, codigoVerificacion);
   };
 
+  // Función para enviar el código de verificación por correo electrónico
   const enviarCodigoVerificacion = async (correo: string, codigoVerificacion: number) => {
     try {
       await MailComposer.composeAsync({
@@ -29,6 +33,21 @@ const RecuperarContrasena = () => {
     } catch (error) {
       console.error('Error al enviar el correo electrónico:', error);
       Alert.alert('Error', 'Ha ocurrido un error al enviar el correo electrónico.');
+    }
+  };
+
+  // Función para validar el formato del correo electrónico
+  const validarCorreo = (email: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  // Manejo del botón para la recuperación de contraseña
+  const handleRecuperarContrasena = () => {
+    if (validarCorreo(correo)) {
+      generarCodigoVerificacion();
+    } else {
+      Alert.alert('Error', 'Por favor, introduce un correo electrónico válido.');
     }
   };
 
@@ -60,7 +79,7 @@ const RecuperarContrasena = () => {
             value={correo}
           />
         </View>
-        <TouchableOpacity style={styles.buttonLong} onPress={generarCodigoVerificacion}>
+        <TouchableOpacity style={styles.buttonLong} onPress={handleRecuperarContrasena}>
           <Text style={styles.buttonText}>RECUPERAR CONTRASEÑA</Text>
         </TouchableOpacity>
       </View>
@@ -90,8 +109,8 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'flex-start',
-    marginTop: 40,
-    marginLeft: 40,
+    marginTop: 30,
+    marginLeft: 30,
   },
   subTitle: {
     fontSize: 20,

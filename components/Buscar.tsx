@@ -34,12 +34,12 @@ const Buscar = () => {
       </View>
 
       <View style={[styles.searchBarContainer, { alignSelf: 'center', marginTop: 40 }]}>
-        <Ionicons name="search" size={20} color="#01063E" style={styles.searchIcon} />
+        <Ionicons name="search" size={20} color="#000033" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           placeholder="Buscar..."
-          placeholderTextColor="#01063E"
-          selectionColor="#01063E"
+          placeholderTextColor="#000033"
+          selectionColor="#000033"
           value={searchValue}
           onChangeText={text => setSearchValue(text)}
           onSubmitEditing={handleSearch}
@@ -64,7 +64,7 @@ const Buscar = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#01063E', // Color de fondo azul para todo el componente
+    backgroundColor: '#000033', // Color de fondo azul para todo el componente
   },
   header: {
     flexDirection: 'row',
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     height: 40,
-    color: '#01063E',
+    color: '#000033',
     paddingHorizontal: 10,
   },
   searchIcon: {
