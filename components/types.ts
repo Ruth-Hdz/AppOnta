@@ -9,10 +9,7 @@ export type RootStackParamList = {
   CrearCategoria: undefined;
   CambiarContrasena: undefined;
   ListaCategorias: undefined;
-  CategoriaSeleccionada: {
-    categoryId: string;
-    categoryTitle: string;
-    categoryColor: string;
-  };
+  CategoriaSeleccionada: { categoryId: string; categoryTitle: string; categoryColor: string };
+  EditarArticulo: { articleId: string; articleTitle: string; onSave: (id: string, newTitle: string) => void };
   Buscar: undefined;
 };

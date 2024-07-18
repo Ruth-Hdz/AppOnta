@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
@@ -8,12 +8,126 @@ import Background2 from './Background2';
 
 const { width } = Dimensions.get('window');
 
-import { RootStackParamList } from './types'; // Asegúrate de importar correctamente tu definición de tipo
+import { RootStackParamList } from './types';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Perfil'>;
 
 const ListaCategorias = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
+
+  // Datos iniciales de las categorías y sus artículos
+  const initialCategoriesData = [
+    {
+      id: '1',
+      title: 'Categoría 1',
+      articlesCount: 5,
+      color: '#FFA07A',
+      icon: 'home',
+      articles: [
+        { id: '1', title: 'Artículo 1' },
+        { id: '2', title: 'Artículo 2' },
+      ],
+    },
+    {
+      id: '2',
+      title: 'Categoría 2',
+      articlesCount: 3,
+      color: '#20B2AA',
+      icon: 'car',
+      articles: [
+        { id: '3', title: 'Artículo 3' },
+        { id: '4', title: 'Artículo 4' },
+      ],
+    },
+    {
+      id: '3',
+      title: 'Categoría 3',
+      articlesCount: 8,
+      color: '#778899',
+      icon: 'book',
+      articles: [
+        { id: '5', title: 'Artículo 5' },
+        { id: '6', title: 'Artículo 6' },
+      ],
+    },
+    {
+      id: '4',
+      title: 'Categoría 4',
+      articlesCount: 2,
+      color: '#8FBC8F',
+      icon: 'business',
+      articles: [
+        { id: '7', title: 'Artículo 7' },
+        { id: '8', title: 'Artículo 8' },
+      ],
+    },
+    {
+      id: '5',
+      title: 'Categoría 5',
+      articlesCount: 7,
+      color: '#FFB6C1',
+      icon: 'camera',
+      articles: [
+        { id: '9', title: 'Artículo 9' },
+        { id: '10', title: 'Artículo 10' },
+      ],
+    },
+    {
+      id: '6',
+      title: 'Categoría 6',
+      articlesCount: 4,
+      color: '#F0E68C',
+      icon: 'gift',
+      articles: [
+        { id: '11', title: 'Artículo 11' },
+        { id: '12', title: 'Artículo 12' },
+      ],
+    },
+    {
+      id: '7',
+      title: 'Categoría 7',
+      articlesCount: 6,
+      color: '#DDA0DD',
+      icon: 'musical-notes',
+      articles: [
+        { id: '13', title: 'Artículo 13' },
+        { id: '14', title: 'Artículo 14' },
+      ],
+    },
+    {
+      id: '8',
+      title: 'Categoría 8',
+      articlesCount: 9,
+      color: '#B0E0E6',
+      icon: 'paw',
+      articles: [
+        { id: '15', title: 'Artículo 15' },
+        { id: '16', title: 'Artículo 16' },
+      ],
+    },
+    {
+      id: '9',
+      title: 'Categoría 9',
+      articlesCount: 1,
+      color: '#FFD700',
+      icon: 'plane',
+      articles: [
+        { id: '17', title: 'Artículo 17' },
+        { id: '18', title: 'Artículo 18' },
+      ],
+    },
+    {
+      id: '10',
+      title: 'Categoría 10',
+      articlesCount: 0,
+      color: '#FF6347',
+      icon: 'restaurant',
+      articles: [
+        { id: '19', title: 'Artículo 19' },
+        { id: '20', title: 'Artículo 20' },
+      ],
+    },
+  ];
 
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -21,6 +135,13 @@ const ListaCategorias = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+  const [selectedArticleTitle, setSelectedArticleTitle] = useState<string | null>(null);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingArticle, setEditingArticle] = useState({ id: '', title: '' });
+
+  // Inicializa el estado de los artículos
+  const [articles, setArticles] = useState(initialCategoriesData.flatMap(category => category.articles));
 
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
@@ -49,106 +170,87 @@ const ListaCategorias = () => {
     return date.toLocaleDateString('es-ES', options);
   };
 
-  // Datos iniciales de las categorías y sus artículos
-  const initialCategoriesData = [
-    { id: '1', title: 'Categoría 1', articlesCount: 5, color: '#FFA07A', icon: 'home', articles: [
-      { id: '1', title: 'Artículo 1' },
-      { id: '2', title: 'Artículo 2' }
-    ] },
-    { id: '2', title: 'Categoría 2', articlesCount: 3, color: '#20B2AA', icon: 'car', articles: [
-      { id: '3', title: 'Artículo 3' },
-      { id: '4', title: 'Artículo 4' }
-    ] },
-    { id: '3', title: 'Categoría 3', articlesCount: 8, color: '#778899', icon: 'book', articles: [
-      { id: '5', title: 'Artículo 5' },
-      { id: '6', title: 'Artículo 6' }
-    ] },
-    { id: '4', title: 'Categoría 4', articlesCount: 2, color: '#8FBC8F', icon: 'business', articles: [
-      { id: '7', title: 'Artículo 7' },
-      { id: '8', title: 'Artículo 8' }
-    ] },
-    { id: '5', title: 'Categoría 5', articlesCount: 7, color: '#FFB6C1', icon: 'camera', articles: [
-      { id: '9', title: 'Artículo 9' },
-      { id: '10', title: 'Artículo 10' }
-    ] },
-    { id: '6', title: 'Categoría 6', articlesCount: 4, color: '#F0E68C', icon: 'gift', articles: [
-      { id: '11', title: 'Artículo 11' },
-      { id: '12', title: 'Artículo 12' }
-    ] },
-    { id: '7', title: 'Categoría 7', articlesCount: 6, color: '#DDA0DD', icon: 'musical-notes', articles: [
-      { id: '13', title: 'Artículo 13' },
-      { id: '14', title: 'Artículo 14' }
-    ] },
-    { id: '8', title: 'Categoría 8', articlesCount: 9, color: '#B0E0E6', icon: 'paw', articles: [
-      { id: '15', title: 'Artículo 15' },
-      { id: '16', title: 'Artículo 16' }
-    ] },
-    { id: '9', title: 'Categoría 9', articlesCount: 1, color: '#FFD700', icon: 'plane', articles: [
-      { id: '17', title: 'Artículo 17' },
-      { id: '18', title: 'Artículo 18' }
-    ] },
-    { id: '10', title: 'Categoría 10', articlesCount: 11, color: '#98FB98', icon: 'restaurant', articles: [
-      { id: '19', title: 'Artículo 19' },
-      { id: '20', title: 'Artículo 20' }
-    ] }
-  ];
-
   const renderCategoryItem = ({ item }: { item: { id: string; title: string; color: string } }) => (
-    <TouchableOpacity 
-      style={[styles.categoryItem, { backgroundColor: item.color }]} 
-      onPress={() => navigation.navigate('CategoriaSeleccionada', { 
-        categoryId: item.id,
-        categoryTitle: item.title,
-        categoryColor: item.color 
-      })}
-    >
+    <TouchableOpacity
+      style={[styles.categoryItem, { backgroundColor: item.color }]}
+      onPress={() =>
+        navigation.navigate('CategoriaSeleccionada', {
+          categoryId: item.id,
+          categoryTitle: item.title,
+          categoryColor: item.color,
+        })
+      }>
       <Text style={styles.categoryTitle}>{item.title}</Text>
     </TouchableOpacity>
   );
 
   const toggleStarred = (id: string) => {
-    setStarredArticles((prevStarred) => 
-      prevStarred.includes(id) ? prevStarred.filter(item => item !== id) : [...prevStarred, id]
+    setStarredArticles((prevStarred) =>
+      prevStarred.includes(id) ? prevStarred.filter((item) => item !== id) : [...prevStarred, id]
     );
   };
+
   const handleCreateArticle = () => {
     navigation.navigate('CrearArticulo');
   };
 
-  const handleEllipsisPress = (id: string, y: number, x: number) => {
+  const handleEllipsisPress = (id: string, y: number, x: number, title: string) => {
     setSelectedArticle(id);
-  
+    setSelectedArticleTitle(title);
     const { height, width } = Dimensions.get('window');
     const adjustedX = Math.max(10, Math.min(x - 60, width - 170));
     const adjustedY = Math.max(10, y - 50);
-  
     setModalPosition({ top: adjustedY, left: adjustedX });
     setModalVisible(true);
   };
 
   const handleEdit = () => {
-    console.log('Edit', selectedArticle);
+    if (selectedArticle && selectedArticleTitle) {
+      setEditingArticle({ id: selectedArticle, title: selectedArticleTitle });
+      setEditModalVisible(true);
+    }
     setModalVisible(false);
+  };
+
+  const handleSaveEdit = () => {
+    setArticles(prevArticles =>
+      prevArticles.map(article =>
+        article.id === editingArticle.id ? { ...article, title: editingArticle.title } : article
+      )
+    );
+    setEditModalVisible(false);
   };
 
   const handleDelete = () => {
-    console.log('Delete', selectedArticle);
     setModalVisible(false);
+    setConfirmModalVisible(true);
   };
 
-  const renderArticleItem = ({ item }) => (
+  const confirmDeleteArticle = () => {
+    setConfirmModalVisible(false);
+    if (selectedArticle) {
+      setArticles(prevArticles => prevArticles.filter(article => article.id !== selectedArticle));
+      setStarredArticles(prevStarred => prevStarred.filter(id => id !== selectedArticle));
+    }
+  };
+
+  const cancelDeleteArticle = () => {
+    setConfirmModalVisible(false);
+  };
+
+  const renderArticleItem = ({ item }: { item: { id: string; title: string } }) => (
     <View style={styles.articleItem}>
       <Text style={styles.articleTitle}>{item.title}</Text>
       <View style={styles.articleActions}>
         <TouchableOpacity onPress={() => toggleStarred(item.id)}>
-          <Ionicons 
-            name={starredArticles.includes(item.id) ? "star" : "star-outline"} 
-            size={24} 
-            color="#FE9526" 
+          <Ionicons
+            name={starredArticles.includes(item.id) ? 'star' : 'star-outline'}
+            size={24}
+            color="#FE9526"
             style={styles.starIcon}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={(e) => handleEllipsisPress(item.id, e.nativeEvent.pageY, e.nativeEvent.pageX)}>
+        <TouchableOpacity onPress={(e) => handleEllipsisPress(item.id, e.nativeEvent.pageY, e.nativeEvent.pageX, item.title)}>
           <Ionicons name="ellipsis-vertical" size={24} color="#000033" />
         </TouchableOpacity>
       </View>
@@ -156,8 +258,7 @@ const ListaCategorias = () => {
   );
 
   const getSortedArticles = () => {
-    const allArticles = initialCategoriesData.flatMap((category) => category.articles);
-    return allArticles.sort((a, b) => {
+    return articles.sort((a, b) => {
       const aStarred = starredArticles.includes(a.id);
       const bStarred = starredArticles.includes(b.id);
       if (aStarred && !bStarred) return -1;
@@ -165,6 +266,8 @@ const ListaCategorias = () => {
       return 0;
     });
   };
+
+
 
   return (
     <View style={styles.container}>
@@ -187,8 +290,7 @@ const ListaCategorias = () => {
       <View style={styles.dateContainer}>
         <View style={styles.dateInfoContainer}>
           <TouchableOpacity onPress={showDatePickerModal}>
-            <Ionicons name="calendar-outline" size={24} color="white"
-          />
+            <Ionicons name="calendar-outline" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.labelText}>Fecha:</Text>
           <Text style={styles.selectedDateText}>{formatDate(date)}</Text>
@@ -217,25 +319,18 @@ const ListaCategorias = () => {
       />
 
       {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-        />
+        <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
       )}
 
       <Modal
         transparent={true}
         animationType="fade"
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
+        onRequestClose={() => setModalVisible(false)}>
         <TouchableOpacity
           style={styles.modalBackground}
           activeOpacity={1}
-          onPressOut={() => setModalVisible(false)}
-        >
+          onPressOut={() => setModalVisible(false)}>
           <View style={[styles.modalContainer, { top: modalPosition.top, left: modalPosition.left }]}>
             <View style={styles.modalContent}>
               <TouchableOpacity style={styles.modalButton} onPress={handleEdit}>
@@ -247,6 +342,66 @@ const ListaCategorias = () => {
                 <Ionicons name="trash-outline" size={24} color="white" style={styles.modalIcon} />
                 <Text style={styles.modalButtonText}>Eliminar</Text>
               </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        transparent={true}
+        visible={confirmModalVisible}
+        animationType="fade"
+        onRequestClose={() => setConfirmModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackground}
+          activeOpacity={1}
+          onPressOut={() => setConfirmModalVisible(false)}
+        >
+          <View style={styles.confirmModalContainer}>
+            <View style={styles.confirmModalContent}>
+              <Text style={styles.confirmModalText}>{`¿Seguro que quieres eliminar este artículo?\n"${selectedArticleTitle}"?`}</Text>
+              <View style={styles.confirmModalButtons}>
+                <TouchableOpacity style={styles.confirmButton} onPress={confirmDeleteArticle}>
+                  <Text style={styles.confirmButtonText}>Confirmar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelButton} onPress={cancelDeleteArticle}>
+                  <Text style={styles.cancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal
+        transparent={true}
+        visible={editModalVisible}
+        animationType="fade"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackground}
+          activeOpacity={1}
+          onPressOut={() => setEditModalVisible(false)}
+        >
+          <View style={styles.editModalContainer}>
+            <View style={styles.editModalContent}>
+              <Text style={styles.editModalTitle}>Editar Artículo</Text>
+              <TextInput
+                style={styles.editInput}
+                value={editingArticle.title}
+                onChangeText={(text) => setEditingArticle(prev => ({ ...prev, title: text }))}
+                placeholder="Título del artículo"
+              />
+              <View style={styles.editModalButtons}>
+                <TouchableOpacity style={styles.saveButton} onPress={handleSaveEdit}>
+                  <Text style={styles.buttonText}>Guardar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.cancelButton} onPress={() => setEditModalVisible(false)}>
+                  <Text style={styles.buttonText}>Cancelar</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </TouchableOpacity>
@@ -357,9 +512,9 @@ const styles = StyleSheet.create({
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
+    
   },
   modalContainer: {
     position: 'absolute',
@@ -390,6 +545,96 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     marginVertical: 5,
   },
+  confirmModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  confirmModalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  confirmModalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  confirmModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '90%',
+    borderRadius: 10,
+
+  },
+  confirmButton: {
+    backgroundColor: '#FE3777',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#0270D0',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  editModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '90%',
+  },
+  editModalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+  },
+  editModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#000033', 
+  },  
+  editInput: {
+    height: 40,
+    borderColor: '#000033',
+    borderWidth: 1,
+    marginBottom: 20,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    color: '#000033', 
+
+  },
+  editModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  saveButton: {
+    backgroundColor: '#FE3777',
+    padding: 10,
+    borderRadius: 5,
+    width: '45%',  
+    alignItems: 'center',  
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  
 });
 
 export default ListaCategorias;
