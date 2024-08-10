@@ -345,7 +345,6 @@ const styles = StyleSheet.create({
   },
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -410,7 +409,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FE3777',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   confirmButtonText: {
     color: '#fff',
@@ -420,7 +419,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0270D0',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   cancelButtonText: {
     color: '#fff',
@@ -436,6 +435,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: '80%',
+    borderColor: '#000033',
+    borderWidth: 2,
   },
   editModalTitle: {
     fontSize: 18,

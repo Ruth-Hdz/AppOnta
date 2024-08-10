@@ -3,7 +3,8 @@ import { View, StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import Background2 from './Background2';
 import { useNavigation } from '@react-navigation/native';
-import * as MailComposer from 'expo-mail-composer';
+import { auth } from '../firebase-config'; // Asegúrate de que la ruta es correcta
+import { sendPasswordResetEmail } from 'firebase/auth'; // Importa sendPasswordResetEmail
 
 // Componente principal para la pantalla de recuperación de contraseña
 const RecuperarContrasena = () => {
@@ -15,27 +16,6 @@ const RecuperarContrasena = () => {
     navigation.goBack();
   };
 
-  // Función para generar un código de verificación aleatorio
-  const generarCodigoVerificacion = () => {
-    const codigoVerificacion = Math.floor(100000 + Math.random() * 900000); // Genera un número de 6 dígitos
-    enviarCodigoVerificacion(correo, codigoVerificacion);
-  };
-
-  // Función para enviar el código de verificación por correo electrónico
-  const enviarCodigoVerificacion = async (correo: string, codigoVerificacion: number) => {
-    try {
-      await MailComposer.composeAsync({
-        recipients: [correo],
-        subject: 'Código de Verificación',
-        body: `Tu código de verificación es: ${codigoVerificacion}`,
-      });
-      Alert.alert('Correo enviado', 'Se ha enviado un código de verificación a tu correo electrónico.');
-    } catch (error) {
-      console.error('Error al enviar el correo electrónico:', error);
-      Alert.alert('Error', 'Ha ocurrido un error al enviar el correo electrónico.');
-    }
-  };
-
   // Función para validar el formato del correo electrónico
   const validarCorreo = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -43,9 +23,16 @@ const RecuperarContrasena = () => {
   };
 
   // Manejo del botón para la recuperación de contraseña
-  const handleRecuperarContrasena = () => {
+  const handleRecuperarContrasena = async () => {
     if (validarCorreo(correo)) {
-      generarCodigoVerificacion();
+      try {
+        await sendPasswordResetEmail(auth, correo);
+        Alert.alert('Correo enviado', 'Se ha enviado un correo electrónico para restablecer la contraseña.');
+        navigation.goBack(); // Opcional: Volver a la pantalla anterior después de enviar el correo
+      } catch (error) {
+        console.error('Error al enviar el correo electrónico:', error);
+        Alert.alert('Error', 'Ha ocurrido un error al enviar el correo electrónico.');
+      }
     } else {
       Alert.alert('Error', 'Por favor, introduce un correo electrónico válido.');
     }
@@ -53,7 +40,7 @@ const RecuperarContrasena = () => {
 
   return (
     <View style={styles.container}>
-      {<Background2 />}
+      <Background2 />
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <Ionicons name="arrow-back" size={30} color="white" />

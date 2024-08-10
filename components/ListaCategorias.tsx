@@ -484,17 +484,15 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   articleItem: {
-    width: width - 40,
-    height: 70,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: 'white',
     borderWidth: 2,
     borderColor: '#000033',
     borderRadius: 10,
-    padding: 10,
+    padding: 15,
     marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   articleTitle: {
     color: '#000033',
@@ -556,6 +554,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '80%',
     alignItems: 'center',
+    borderColor: '#000033',
+    borderWidth: 2,
   },
   confirmModalText: {
     fontSize: 18,
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FE3777',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   confirmButtonText: {
     color: '#fff',
@@ -584,7 +584,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0270D0',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 5,
+    borderRadius: 10,
   },
   cancelButtonText: {
     color: '#fff',
@@ -601,6 +601,8 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: '80%',
+    borderColor: '#000033',
+    borderWidth: 2,
   },
   editModalTitle: {
     fontSize: 18,
@@ -612,7 +614,7 @@ const styles = StyleSheet.create({
   editInput: {
     height: 40,
     borderColor: '#000033',
-    borderWidth: 1,
+    borderWidth: 2,
     marginBottom: 20,
     paddingHorizontal: 10,
     borderRadius: 10,
@@ -626,7 +628,7 @@ const styles = StyleSheet.create({
   saveButton: {
     backgroundColor: '#FE3777',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 10,
     width: '45%',  
     alignItems: 'center',  
   },

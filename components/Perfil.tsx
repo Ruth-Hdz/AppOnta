@@ -5,6 +5,8 @@ import Background2 from './Background2';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from './types';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase-config';
 
 type PerfilScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Perfil'>;
 type PerfilScreenRouteProp = RouteProp<RootStackParamList, 'Perfil'>;
@@ -34,8 +36,13 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
     navigation.navigate('CambiarContrasena'); // Navegar a la pantalla de cambiar contraseña
   };
 
-  const Salir = () => {
-    navigation.navigate('Login'); // Navegar a la pantalla de inicio de sesión
+  const Salir = async () => {
+    try {
+      await signOut(auth); // Cierra la sesión
+      navigation.navigate('Login'); // Redirige a la pantalla de inicio de sesión
+    } catch (error) {
+      console.error('Error al cerrar sesión: ', error);
+    }
   };
 
   return (

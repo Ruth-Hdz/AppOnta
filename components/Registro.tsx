@@ -5,6 +5,9 @@ import { RouteProp } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from '@codler/react-native-keyboard-aware-scroll-view';
 import Background from './Background';
 import { Checkbox } from 'react-native-paper';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase-config';
+import { Feather } from '@expo/vector-icons';
 
 type RootStackParamList = {
   Login: undefined;
@@ -20,10 +23,67 @@ type RegistroProps = {
 };
 
 const Registro: React.FC<RegistroProps> = ({ navigation }) => {
-  const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [contraseña, setContraseña] = useState('');
-  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [contraseña, setContraseña] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [aceptaTerminos, setAceptaTerminos] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+
+  const registerUser = async (email: string, password: string) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      return userCredential.user;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleRegister = async () => {
+    if (!aceptaTerminos) {
+      setError('Debes aceptar los términos y condiciones');
+      return;
+    }
+    
+    try {
+      // Register user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, contraseña);
+      const user = userCredential.user;
+  
+      // Send user details to backend
+      const response = await fetch('http://localhost:3000/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          nombre: username,
+          email,
+          contraseña,
+          acepta_terminos: aceptaTerminos,
+          firebase_uid: user.uid,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setSuccess(data.message || 'Registro exitoso');
+        setError(null);
+        // Sign out the newly registered user
+        await auth.signOut();
+        // Navigate to Login screen
+        navigation.navigate('Login');
+      } else {
+        setError(data.message || 'Error en el registro');
+        setSuccess(null);
+      }
+    } catch (error) {
+      setError('Error: ' + (error instanceof Error ? error.message : String(error)));
+      setSuccess(null);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -37,6 +97,16 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
           <Image source={require('../assets/logo.png')} style={styles.logo} />
         </View>
         <Text style={styles.texto}>Registro</Text>
+        {error && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+        {success && (
+          <View style={styles.successContainer}>
+            <Text style={styles.successText}>{success}</Text>
+          </View>
+        )}
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Nombre</Text>
@@ -44,29 +114,34 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
               style={styles.input}
               placeholder="Introduce tu nombre"
               placeholderTextColor="#ffffff"
-              onChangeText={setNombre}
-              value={nombre}
+              onChangeText={setUsername}
+              value={username}
             />
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Contraseña</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="********* "
-              placeholderTextColor="#ffffff"
-              secureTextEntry={true}
-              onChangeText={setContraseña}
-              value={contraseña}
-            />
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                placeholder="********* "
+                placeholderTextColor="#ffffff"
+                secureTextEntry={!showPassword}
+                onChangeText={setContraseña}
+                value={contraseña}
+              />
+              <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPassword(!showPassword)}>
+                <Feather name={showPassword ? 'eye' : 'eye-off'} size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Correo electrónico</Text>
             <TextInput
               style={styles.input}
-              placeholder="Introduce tu Correo Electrónico "
+              placeholder="Introduce tu Correo Electrónico"
               placeholderTextColor="#ffffff"
-              onChangeText={setCorreo}
-              value={correo}
+              onChangeText={setEmail}
+              value={email}
             />
           </View>
           <View style={styles.checkboxContainer}>
@@ -76,19 +151,18 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
               color="#000033"
               uncheckedColor="#000033"
             />
-            <Text style={styles.checkboxLabel}>Acepto Terminos y Condiciones</Text>
+            <Text style={styles.checkboxLabel}>Acepto Términos y Condiciones</Text>
           </View>
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={() => console.log('Registrado')}>
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
             <Text style={styles.buttonText}>Registrar</Text>
           </TouchableOpacity>
         </View>
         <Text style={styles.registrarText}>
           ¿Ya tienes una cuenta?
           <Text style={styles.boldText} onPress={() => navigation.navigate('Login')}>
-            {' '}
-            Inicia Sesión
+            {' '} Inicia Sesión
           </Text>
         </Text>
       </KeyboardAwareScrollView>
@@ -99,92 +173,43 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
 const windowHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollViewContent: {
-    flexGrow: 1,
+  container: { flex: 1 },
+  scrollViewContent: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 20 },
+  logoContainer: { alignItems: 'center', marginBottom: 10 },
+  boldText: { fontWeight: 'bold' },
+  logo: { width: 150, height: 150, borderRadius: 80 },
+  formContainer: { width: 300, backgroundColor: '#0094F1', padding: 20, borderRadius: 10 },
+  texto: { fontSize: 30, fontWeight: 'bold', color: '#ffffff', marginBottom: 14, textAlign: 'center' },
+  inputContainer: { marginBottom: 20 },
+  input: { height: 40, backgroundColor: '#0094F1', color: '#ffffff', borderBottomWidth: 1, borderBottomColor: '#ffffff', padding: 0, fontSize: 15 },
+  inputLabel: { color: '#ffffff', fontSize: 16, fontWeight: 'bold', marginBottom: 5 },
+  checkboxContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+  checkboxLabel: { color: '#000033', fontWeight: 'bold', fontSize: 14, marginLeft: 8 },
+  buttonContainer: { alignItems: 'center', marginTop: 20 },
+  button: { backgroundColor: '#FF7306', paddingVertical: 15, borderRadius: 30, width: 180 },
+  buttonText: { color: '#ffffff', fontWeight: 'bold', fontSize: 20, textAlign: 'center' },
+  registrarText: { color: '#000033', fontSize: 14, marginTop: 20, textAlign: 'center', fontWeight: 'normal' },
+  errorContainer: { backgroundColor: '#ffffff', borderColor: '#000033', borderWidth: 2, borderRadius: 5, padding: 10, marginBottom: 20 },
+  errorText: { color: '#FF7306', textAlign: 'center' },
+  successContainer: { backgroundColor: '#ffffff', borderColor: '#00C29D', borderWidth: 2, borderRadius: 5, padding: 10, marginBottom: 20 },
+  passwordContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  boldText: {
-    fontWeight: 'bold',
-  },
-  logo: {
-    width: 150,
-    height: 150,
-    borderRadius: 80,
-  },
-  formContainer: {
-    width: 300,
     backgroundColor: '#0094F1',
-    padding: 20,
-    borderRadius: 10,
-  },
-  texto: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 14,
-    textAlign: 'center',
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  input: {
-    height: 40,
-    backgroundColor: '#0094F1',
-    color: '#ffffff',
     borderBottomWidth: 1,
     borderBottomColor: '#ffffff',
+  },
+  passwordInput: {
+    flex: 1,
+    height: 40,
+    color: '#ffffff',
     padding: 0,
     fontSize: 15,
   },
-  inputLabel: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
+  eyeIcon: {
+    padding: 10,
   },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  checkboxLabel: {
-    color: '#000033',
-    fontWeight: 'bold',
-    fontSize: 14,
-    marginLeft: 8,
-  },
-  buttonContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  button: {
-    backgroundColor: '#FF7306',
-    paddingVertical: 15,
-    borderRadius: 30,
-    width: 180,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 20,
-    textAlign: 'center',
-  },
-  registrarText: {
-    color: '#000033',
-    fontSize: 14,
-    marginTop: 20,
-    textAlign: 'center',
-    fontWeight: 'normal',
-  },
+  successText: { color: '#00C29D', textAlign: 'center' },
 });
 
 export default Registro;

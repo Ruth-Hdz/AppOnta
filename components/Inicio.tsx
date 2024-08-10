@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList, Dimensions, Modal, TouchableWithoutFeedback } from 'react-native';
 import Background from './Background';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from './types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
@@ -25,9 +26,27 @@ const Inicio = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState('');
-
   const [categories, setCategories] = useState(initialCategoriesData);
+  const [username, setUsername] = useState('');
 
+  useEffect(() => {
+    fetchUsername();
+  }, []);
+
+  const fetchUsername = async () => {
+    try {
+      const email = await AsyncStorage.getItem('userEmail');
+      if (email) {
+        const response = await fetch(`http://192.168.0.104:3000/api/username?email=${email}`);
+        const data = await response.json();
+        if (data.username) {
+          setUsername(data.username);
+        }
+      }
+    } catch (error) {
+      console.error('Error al obtener el nombre de usuario:', error);
+    }
+  };
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
   };
@@ -75,7 +94,7 @@ const Inicio = () => {
             <Ionicons name="menu" size={32} color="#ffffff" style={styles.icon} />
           </TouchableOpacity>
         </View>
-        <Text style={styles.text}>Violeta</Text>
+        <Text style={styles.text}>{username || 'Usuario'}</Text>
         <View style={styles.searchBarContainer}>
           <Ionicons name="search" size={24} color="#000033" style={styles.searchIcon} />
           <TextInput
