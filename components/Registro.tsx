@@ -1,3 +1,4 @@
+// Importa las librerías necesarias
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet, Dimensions } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -5,9 +6,8 @@ import { RouteProp } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from '@codler/react-native-keyboard-aware-scroll-view';
 import Background from './Background';
 import { Checkbox } from 'react-native-paper';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase-config';
 import { Feather } from '@expo/vector-icons';
+import BASE_URL from '../config';
 
 type RootStackParamList = {
   Login: undefined;
@@ -23,67 +23,53 @@ type RegistroProps = {
 };
 
 const Registro: React.FC<RegistroProps> = ({ navigation }) => {
-    const [username, setUsername] = useState('');
-    const [email, setEmail] = useState('');
-    const [contraseña, setContraseña] = useState('');
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
-    const [aceptaTerminos, setAceptaTerminos] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
-
-  const registerUser = async (email: string, password: string) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
-    } catch (error) {
-      throw error;
-    }
-  };
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [contraseña, setContraseña] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [aceptaTerminos, setAceptaTerminos] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async () => {
+    if (!username || !email || !contraseña) {
+      setError('Por favor, completa todos los campos');
+      return;
+    }
+  
     if (!aceptaTerminos) {
       setError('Debes aceptar los términos y condiciones');
       return;
     }
-    
-    try {
-      // Register user in Firebase
-      const userCredential = await createUserWithEmailAndPassword(auth, email, contraseña);
-      const user = userCredential.user;
   
-      // Send user details to backend
-      const response = await fetch('http://localhost:3000/auth/register', {
+    try {
+      const response = await fetch(`${BASE_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           nombre: username,
-          email,
-          contraseña,
+          email: email,
+          contraseña: contraseña,
           acepta_terminos: aceptaTerminos,
-          firebase_uid: user.uid,
         }),
       });
   
       const data = await response.json();
   
       if (response.ok) {
-        setSuccess(data.message || 'Registro exitoso');
-        setError(null);
-        // Sign out the newly registered user
-        await auth.signOut();
-        // Navigate to Login screen
-        navigation.navigate('Login');
+        setSuccess('Usuario registrado exitosamente');
+        // No es necesario interactuar con Firebase aquí
       } else {
-        setError(data.message || 'Error en el registro');
-        setSuccess(null);
+        setError(data.error || 'Error al registrar el usuario');
       }
     } catch (error) {
-      setError('Error: ' + (error instanceof Error ? error.message : String(error)));
-      setSuccess(null);
+      console.error('Error detallado:', error);
+      setError('Error de conexión. Por favor, intenta más tarde.');
     }
   };
+  
 
   return (
     <View style={styles.container}>

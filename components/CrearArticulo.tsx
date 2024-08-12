@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TextInput, TouchableOpacity, Modal, Pressable } from 'react-native';
 import Background2 from './Background2';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,6 +6,8 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
 import { Picker } from '@react-native-picker/picker';
+import BASE_URL from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type CrearArticuloScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CrearArticulo'>;
 
@@ -14,35 +16,97 @@ const CrearArticulo = () => {
   const [showModal, setShowModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState('');
+  const [titulo, setTitulo] = useState('');
+  const [texto, setTexto] = useState('');
+  const [categorias, setCategorias] = useState<{ label: string; value: string }[]>([]);
 
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
+  
+        const response = await fetch(`${BASE_URL}/categories/${id_usuario}`);
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const formattedData = data.map(item => ({
+            label: item.nombre || item.label,
+            value: item.id || item.value
+          }));
+          setCategorias(formattedData);
+        } else {
+          setCategorias([]);
+        }
+      } catch (error) {
+        setCategorias([]);
+      }
+    };
+  
+    fetchCategorias();
+  }, []);
+  
   const handleBack = () => {
     navigation.goBack();
   };
+  
 
-  const handleGuardar = () => {
-    setSuccessMessage('Guardado con éxito');
-    setShowModal(true);
+  const handleGuardar = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem('userId');
+      const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
+
+      const response = await fetch(`${BASE_URL}/articles`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          titulo,
+          texto,
+          prioridad: 1, // Puedes ajustar esto según tu lógica
+          id_categoria: categoriaSeleccionada,
+        }),
+      });
+
+      if (response.ok) {
+        setSuccessMessage('Artículo guardado con éxito');
+        setShowModal(true);
+      } else {
+        console.error('Error al guardar el artículo:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error al guardar el artículo:', error);
+    }
   };
+
+  const handleEliminarCategoria = async () => {
+    try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
+
+        const response = await fetch(`${BASE_URL}/categories/${id_usuario}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error al eliminar la categoría:', response.status, errorText);
+        }
+         else {
+            console.error('Error al eliminar la categoría:', response.statusText);
+        }
+    } catch (error) {
+        console.error('Error al eliminar la categoría:', error);
+    } finally {
+        setShowModal(false);
+    }
+};
 
   const closeModal = () => {
     setShowModal(false);
-    setSuccessMessage(''); // Limpiar el mensaje de éxito
-    navigation.navigate('ListaCategorias'); // Navegar a la lista de categorías después de cerrar el modal
+    setSuccessMessage('');
+    navigation.navigate('ListaCategorias');
   };
-
-  // Opciones de categorías
-  const categorias = [
-    { label: 'Casa', value: 'Casa' },
-    { label: 'Trabajo', value: 'Trabajo' },
-    { label: 'Universidad', value: 'Universidad' },
-    { label: 'Compras', value: 'Compras' },
-    { label: 'Salud', value: 'Salud' },
-    { label: 'Random', value: 'Random' },
-    { label: 'Categoría 7', value: 'Categoría 7' },
-    { label: 'Categoría 8', value: 'Categoría 8' },
-    { label: 'Categoría 9', value: 'Categoría 9' },
-    { label: 'Categoría 10', value: 'Categoría 10' },
-  ];
 
   return (
     <View style={styles.container}>
@@ -60,59 +124,72 @@ const CrearArticulo = () => {
         </Text>
       </View>
       <View style={styles.box}>
-        {/* TextInput para la categoría con ícono de flecha desplegable */}
         <View style={styles.inputContainer}>
           <Picker
             selectedValue={categoriaSeleccionada}
-            style={styles.pickerInput} // Aplica los estilos directamente al Picker
-            onValueChange={(itemValue, itemIndex) =>
-              setCategoriaSeleccionada(itemValue)
-            }>
-            {categorias.map((categoria, index) => (
-              <Picker.Item
-                key={index}
-                label={categoria.label}
-                value={categoria.value}
-              />
-            ))}
+            style={styles.pickerInput}
+            onValueChange={(itemValue) => setCategoriaSeleccionada(itemValue)}
+          >
+            <Picker.Item label="Seleccione una categoría" value="" />
+            {categorias.length > 0 ? (
+              categorias.map((categoria) => (
+                <Picker.Item
+                  key={categoria.value}
+                  label={categoria.label}
+                  value={categoria.value}
+                />
+              ))
+            ) : (
+              <Picker.Item label="No hay categorías disponibles" value="" />
+            )}
           </Picker>
         </View>
-        {/* TextInput para el título */}
         <TextInput
           style={[styles.input, styles.inputTitle]}
           placeholder="Ingresa el título de tu artículo"
+          value={titulo}
+          onChangeText={setTitulo}
         />
-        {/* TextInput para el texto */}
         <TextInput
           style={[styles.input, styles.largeInput]}
           placeholder="Texto"
           multiline={true}
           numberOfLines={6}
+          value={texto}
+          onChangeText={setTexto}
         />
       </View>
       <TouchableOpacity style={styles.saveButton} onPress={handleGuardar}>
         <Text style={styles.saveButtonText}>Guardar</Text>
       </TouchableOpacity>
 
-      {/* Modal de éxito */}
       <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showModal}
-        onRequestClose={closeModal}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
+    animationType="fade"
+    transparent={true}
+    visible={showModal}
+    onRequestClose={() => setShowModal(false)}
+>
+    <View style={styles.modalBackground}>
+        <View style={styles.modalContent}>
             <View style={styles.successCircle}>
-              <Ionicons name="checkmark" size={60} color="white" />
+                <Ionicons name="checkmark" size={60} color="white" />
             </View>
             <Text style={styles.modalText}>{successMessage}</Text>
-            <Pressable style={styles.modalCloseButton} onPress={closeModal}>
-              <Ionicons name="close" size={24} color="#000033" />
+            <Pressable style={styles.modalCloseButton} onPress={() => setShowModal(false)}>
+                <Ionicons name="close" size={24} color="#000033" />
             </Pressable>
-          </View>
+            {successMessage.includes('Categoría eliminada') && (
+                <TouchableOpacity
+                    style={styles.saveButton}
+                    onPress={handleEliminarCategoria}
+                >
+                    <Text style={styles.saveButtonText}>Confirmar Eliminación</Text>
+                </TouchableOpacity>
+            )}
         </View>
-      </Modal>
+    </View>
+</Modal>
+
     </View>
   );
 };

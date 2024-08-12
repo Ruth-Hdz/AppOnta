@@ -5,48 +5,71 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootStackParamList } from './types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import BASE_URL from '../config';
+
+// Define the Category interface
+interface Category {
+  id: number;
+  nombre: string;
+  icono: string;
+  color: string;
+  id_usuario: number;
+  numero_articulos: number; 
+}
 
 const { width } = Dimensions.get('window');
-
-const initialCategoriesData = [
-  { id: '1', title: 'Casa', articlesCount: 5, color: '#FE3777', icon: 'home' },
-  { id: '2', title: 'Trabajo', articlesCount: 3, color: '#0270D0', icon: 'briefcase' },
-  { id: '3', title: 'Universidad', articlesCount: 8, color: '#FFC301', icon: 'book' },
-  { id: '4', title: 'Compras', articlesCount: 2, color: '#00B48C', icon: 'pricetags' },
-  { id: '5', title: 'Salud', articlesCount: 7, color: '#7C5CB5', icon: 'medkit' },
-  { id: '6', title: 'Random', articlesCount: 4, color: '#FF7306', icon: 'medical' },
-  { id: '7', title: 'Música', articlesCount: 6, color: '#DDA0DD', icon: 'musical-notes' },
-  { id: '8', title: 'Cachorros', articlesCount: 9, color: '#B0E0E6', icon: 'paw' },
-  { id: '9', title: 'Comida', articlesCount: 11, color: '#98FB98', icon: 'restaurant' },
-  { id: '10', title: 'viajes', articlesCount: 1, color: '#FFD700', icon: 'airplane' },
-];
 
 const Inicio = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [selectedCategoryId, setSelectedCategoryId] = useState('');
-  const [categories, setCategories] = useState(initialCategoriesData);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [username, setUsername] = useState('');
+  const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    fetchUsername();
+    fetchUserData();
   }, []);
 
-  const fetchUsername = async () => {
+  useEffect(() => {
+    if (userId !== null) {
+      fetchCategories(userId);
+    }
+  }, [userId]);
+
+  const fetchUserData = async () => {
     try {
-      const email = await AsyncStorage.getItem('userEmail');
-      if (email) {
-        const response = await fetch(`http://192.168.0.104:3000/api/username?email=${email}`);
-        const data = await response.json();
-        if (data.username) {
-          setUsername(data.username);
-        }
+      const storedUsername = await AsyncStorage.getItem('username');
+      const storedUserId = await AsyncStorage.getItem('userId');
+      if (storedUsername) {
+        setUsername(storedUsername);
+      } else {
+        setUsername('Usuario');
+      }
+      if (storedUserId) {
+        setUserId(parseInt(storedUserId, 10));
+      } else {
+        setUserId(1); // Valor por defecto si no hay id de usuario
       }
     } catch (error) {
-      console.error('Error al obtener el nombre de usuario:', error);
+      console.error('Error al obtener los datos del usuario:', error);
     }
   };
+
+  const fetchCategories = async (userId: number) => {
+    try {
+      const response = await fetch(`${BASE_URL}/categories/${userId}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data: Category[] = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
   };
@@ -65,23 +88,36 @@ const Inicio = () => {
     navigation.navigate('CrearArticulo');
   };
 
-  const handleDeleteCategory = (categoryId: string) => {
+  const handleDeleteCategory = (categoryId: number) => {
     setSelectedCategoryId(categoryId);
     setConfirmModalVisible(true);
   };
 
-  const confirmDeleteCategory = () => {
-    setCategories(categories.filter((category) => category.id !== selectedCategoryId));
-    setConfirmModalVisible(false);
+  const confirmDeleteCategory = async () => {
+    if (selectedCategoryId !== null) {
+      try {
+        const response = await fetch(`${BASE_URL}/categories/${selectedCategoryId}`, {
+          method: 'DELETE',
+        });
+        if (response.ok) {
+          setCategories(categories.filter((category) => category.id !== selectedCategoryId));
+        } else {
+          console.error('Error deleting category');
+        }
+      } catch (error) {
+        console.error('Error deleting category:', error);
+      }
+      setConfirmModalVisible(false);
+    }
   };
 
   const cancelDeleteCategory = () => {
-    setSelectedCategoryId('');
+    setSelectedCategoryId(null);
     setConfirmModalVisible(false);
   };
 
-  const handleCategoryPress = (categoryId: any, categoryTitle: any) => {
-    navigation.navigate('ListaCategorias');
+  const handleCategoryPress = (categoryId: number, categoryTitle: string) => {
+    navigation.navigate('ListaCategorias', { categoryId: categoryId.toString(), categoryTitle });
   };
 
   return (
@@ -106,7 +142,7 @@ const Inicio = () => {
           />
         </View>
         <View style={styles.categoriesHeaderContainer}>
-          <Text style={styles.text3}>Categorias</Text>
+          <Text style={styles.text3}>Categorías</Text>
           <TouchableOpacity onPress={handleMoreOptionsPress}>
             <Ionicons name="ellipsis-horizontal" size={24} color="#ffffff" style={styles.moreOptionsIcon} />
           </TouchableOpacity>
@@ -116,28 +152,28 @@ const Inicio = () => {
       <FlatList
         data={categories}
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.categoryItem, { backgroundColor: item.color }]}
-            onPress={() => handleCategoryPress(item.id, item.title)}
-          >
-            <Ionicons name={item.icon} size={32} color="#ffffff" style={styles.categoryIcon} />
-            <View style={styles.categoryContent}>
+          <View style={[styles.categoryItem, { backgroundColor: item.color }]}>
+            <TouchableOpacity
+              style={styles.categoryContent}
+              onPress={() => handleCategoryPress(item.id, item.nombre)}
+            >
+              <Ionicons name={item.icono} size={32} color="#ffffff" style={styles.categoryIcon} />
               <View style={styles.categoryTextContainer}>
-                <Text style={styles.categoryTitle}>{item.title}</Text>
-                <Text style={styles.categoryArticlesCount}>{item.articlesCount} artículos</Text>
+                <Text style={styles.categoryTitle}>{item.nombre}</Text>
+                <Text style={styles.categoryArticlesCount}>{item.numero_articulos} artículos</Text>
               </View>
-            </View>
+            </TouchableOpacity>
             <View style={styles.categoryIcons}>
-              <TouchableOpacity onPress={handleCreateArticle}>
+            <TouchableOpacity onPress={handleCreateArticle}>
                 <Ionicons name="add" size={24} color="#ffffff" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
                 <Ionicons name="trash" size={24} color="#ffffff" />
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
+          </View>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         contentContainerStyle={styles.categoriesList}
       />

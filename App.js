@@ -1,10 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { auth } from './firebase-config'; 
-import { onAuthStateChanged } from 'firebase/auth';
+
 import Login from './components/Login';
 import Registro from './components/Registro';
 import Inicio from './components/Inicio';
@@ -20,80 +19,64 @@ import Buscar from './components/Buscar';
 const Stack = createNativeStackNavigator();
 
 export default function App() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
-
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={user ? "Inicio" : "Login"}>
-        {!user ? (
-          <>
-            <Stack.Screen
-              name="Login"
-              component={Login}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Registro"
-              component={Registro}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="RecuperarContrasena"
-              component={RecuperarContrasena}
-              options={{ headerShown: false }}
-            />
-          </>
-        ) : (
-          <>
-            <Stack.Screen
-              name="Inicio"
-              component={Inicio}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Perfil"
-              component={Perfil}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="CambiarContrasena"
-              component={CambiarContrasena}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="CrearArticulo"
-              component={CrearArticulo}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="CrearCategoria"
-              component={CrearCategoria}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="ListaCategorias"
-              component={ListaCategorias}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="CategoriaSeleccionada"
-              component={CategoriaSeleccionada}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Buscar"
-              component={Buscar}
-              options={{ headerShown: false }}
-            />
-          </>
-        )}
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen
+          name="Login"
+          component={Login}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Registro"
+          component={Registro}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RecuperarContrasena"
+          component={RecuperarContrasena}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Inicio"
+          component={Inicio}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Perfil"
+          component={Perfil}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CambiarContrasena"
+          component={CambiarContrasena}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CrearArticulo"
+          component={CrearArticulo}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CrearCategoria"
+          component={CrearCategoria}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ListaCategorias"
+          component={ListaCategorias}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="CategoriaSeleccionada"
+          component={CategoriaSeleccionada}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Buscar"
+          component={Buscar}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
       <StatusBar style="auto" />
     </NavigationContainer>

@@ -8,7 +8,7 @@ export type RootStackParamList = {
   CrearArticulo: undefined;
   CrearCategoria: undefined;
   CambiarContrasena: undefined;
-  ListaCategorias: undefined;
+  ListaCategorias: { categoryId: string; categoryTitle: string };
   CategoriaSeleccionada: { categoryId: string; categoryTitle: string; categoryColor: string };
   EditarArticulo: { articleId: string; articleTitle: string; onSave: (id: string, newTitle: string) => void };
   Buscar: undefined;

@@ -3,8 +3,9 @@ import { View, TextInput, TouchableOpacity, Text, Image, StyleSheet } from 'reac
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import Background from './Background';
-import { loginUser } from '../services/authService';
 import { Feather } from '@expo/vector-icons';
+import BASE_URL from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type RootStackParamList = {
   Login: undefined;
@@ -28,14 +29,42 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    if (!correo || !contraseña) {
+      setError('Por favor, completa todos los campos');
+      return;
+    }
+  
     try {
-      await loginUser(correo, contraseña);
-      navigation.navigate('Inicio');
-    } catch (err) {
-      setError('Correo o contraseña incorrectos');
+      const response = await fetch(`${BASE_URL}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: correo,
+          contraseña: contraseña,
+        }),
+      });
+  
+      const data = await response.json();
+      console.log('Respuesta del servidor:', data);
+  
+      if (response.ok) {
+        const username = data.nombre || 'Usuario'; // Usa un valor predeterminado si el nombre no está disponible
+        await AsyncStorage.setItem('userEmail', correo);
+        await AsyncStorage.setItem('username', username); // Asegúrate de que el nombre no sea undefined
+        console.log('Nombre de usuario guardado:', username);
+        navigation.navigate('Inicio');
+      } else {
+        setError(data.error || 'Error al iniciar sesión');
+      }
+    } catch (error) {
+      console.error('Error detallado:', error);
+      setError('Error de conexión. Por favor, intenta más tarde.');
     }
   };
-
+  
+  
   return (
     <View style={styles.container}>
       <Background />
