@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TextInput, TouchableOpacity, Modal, Pressable } from 'react-native';
+import { View, StyleSheet, Text, TextInput, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
 import Background2 from './Background2';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -25,7 +25,7 @@ const CrearArticulo = () => {
       try {
         const storedUserId = await AsyncStorage.getItem('userId');
         const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
-  
+
         const response = await fetch(`${BASE_URL}/categories/${id_usuario}`);
         const data = await response.json();
         if (Array.isArray(data) && data.length > 0) {
@@ -38,19 +38,25 @@ const CrearArticulo = () => {
           setCategorias([]);
         }
       } catch (error) {
+        console.error('Error al obtener categorías:', error);
         setCategorias([]);
       }
     };
-  
+
     fetchCategorias();
   }, []);
-  
+
   const handleBack = () => {
     navigation.goBack();
   };
-  
 
   const handleGuardar = async () => {
+    // Verificar si todos los campos están completos
+    if (!titulo || !texto || !categoriaSeleccionada) {
+      Alert.alert('Error', 'Rellena todos los campos');
+      return;
+    }
+
     try {
       const storedUserId = await AsyncStorage.getItem('userId');
       const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
@@ -79,34 +85,15 @@ const CrearArticulo = () => {
     }
   };
 
-  const handleEliminarCategoria = async () => {
-    try {
-        const storedUserId = await AsyncStorage.getItem('userId');
-        const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
-
-        const response = await fetch(`${BASE_URL}/categories/${id_usuario}`, {
-          method: 'DELETE',
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error al eliminar la categoría:', response.status, errorText);
-        }
-         else {
-            console.error('Error al eliminar la categoría:', response.statusText);
-        }
-    } catch (error) {
-        console.error('Error al eliminar la categoría:', error);
-    } finally {
-        setShowModal(false);
-    }
-};
-
   const closeModal = () => {
     setShowModal(false);
     setSuccessMessage('');
-    navigation.navigate('ListaCategorias');
+    navigation.navigate('ListaCategorias', { 
+      categoryId: 'defaultId', 
+      categoryTitle: 'defaultTitle' 
+    });
   };
+  
 
   return (
     <View style={styles.container}>
@@ -164,31 +151,23 @@ const CrearArticulo = () => {
       </TouchableOpacity>
 
       <Modal
-    animationType="fade"
-    transparent={true}
-    visible={showModal}
-    onRequestClose={() => setShowModal(false)}
->
-    <View style={styles.modalBackground}>
-        <View style={styles.modalContent}>
+        animationType="fade"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContent}>
             <View style={styles.successCircle}>
-                <Ionicons name="checkmark" size={60} color="white" />
+              <Ionicons name="checkmark" size={60} color="white" />
             </View>
             <Text style={styles.modalText}>{successMessage}</Text>
-            <Pressable style={styles.modalCloseButton} onPress={() => setShowModal(false)}>
-                <Ionicons name="close" size={24} color="#000033" />
+            <Pressable style={styles.modalCloseButton} onPress={closeModal}>
+              <Ionicons name="close" size={24} color="#000033" />
             </Pressable>
-            {successMessage.includes('Categoría eliminada') && (
-                <TouchableOpacity
-                    style={styles.saveButton}
-                    onPress={handleEliminarCategoria}
-                >
-                    <Text style={styles.saveButtonText}>Confirmar Eliminación</Text>
-                </TouchableOpacity>
-            )}
+          </View>
         </View>
-    </View>
-</Modal>
+      </Modal>
 
     </View>
   );

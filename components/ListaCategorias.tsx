@@ -1,133 +1,28 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, Alert, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Background2 from './Background2';
+import { RootStackParamList } from './types';
+import BASE_URL from '../config';
 
 const { width } = Dimensions.get('window');
 
-import { RootStackParamList } from './types';
+interface Category {
+  id: number;
+  nombre: string;
+  icono: string;
+  color: string;
+  id_usuario: number;
+  numero_articulos: number;
+}
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Perfil'>;
 
 const ListaCategorias = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-
-  // Datos iniciales de las categorías y sus artículos
-  const initialCategoriesData = [
-    {
-      id: '1',
-      title: 'Categoría 1',
-      articlesCount: 5,
-      color: '#FFA07A',
-      icon: 'home',
-      articles: [
-        { id: '1', title: 'Artículo 1' },
-        { id: '2', title: 'Artículo 2' },
-      ],
-    },
-    {
-      id: '2',
-      title: 'Categoría 2',
-      articlesCount: 3,
-      color: '#20B2AA',
-      icon: 'car',
-      articles: [
-        { id: '3', title: 'Artículo 3' },
-        { id: '4', title: 'Artículo 4' },
-      ],
-    },
-    {
-      id: '3',
-      title: 'Categoría 3',
-      articlesCount: 8,
-      color: '#778899',
-      icon: 'book',
-      articles: [
-        { id: '5', title: 'Artículo 5' },
-        { id: '6', title: 'Artículo 6' },
-      ],
-    },
-    {
-      id: '4',
-      title: 'Categoría 4',
-      articlesCount: 2,
-      color: '#8FBC8F',
-      icon: 'business',
-      articles: [
-        { id: '7', title: 'Artículo 7' },
-        { id: '8', title: 'Artículo 8' },
-      ],
-    },
-    {
-      id: '5',
-      title: 'Categoría 5',
-      articlesCount: 7,
-      color: '#FFB6C1',
-      icon: 'camera',
-      articles: [
-        { id: '9', title: 'Artículo 9' },
-        { id: '10', title: 'Artículo 10' },
-      ],
-    },
-    {
-      id: '6',
-      title: 'Categoría 6',
-      articlesCount: 4,
-      color: '#F0E68C',
-      icon: 'gift',
-      articles: [
-        { id: '11', title: 'Artículo 11' },
-        { id: '12', title: 'Artículo 12' },
-      ],
-    },
-    {
-      id: '7',
-      title: 'Categoría 7',
-      articlesCount: 6,
-      color: '#DDA0DD',
-      icon: 'musical-notes',
-      articles: [
-        { id: '13', title: 'Artículo 13' },
-        { id: '14', title: 'Artículo 14' },
-      ],
-    },
-    {
-      id: '8',
-      title: 'Categoría 8',
-      articlesCount: 9,
-      color: '#B0E0E6',
-      icon: 'paw',
-      articles: [
-        { id: '15', title: 'Artículo 15' },
-        { id: '16', title: 'Artículo 16' },
-      ],
-    },
-    {
-      id: '9',
-      title: 'Categoría 9',
-      articlesCount: 1,
-      color: '#FFD700',
-      icon: 'plane',
-      articles: [
-        { id: '17', title: 'Artículo 17' },
-        { id: '18', title: 'Artículo 18' },
-      ],
-    },
-    {
-      id: '10',
-      title: 'Categoría 10',
-      articlesCount: 0,
-      color: '#FF6347',
-      icon: 'restaurant',
-      articles: [
-        { id: '19', title: 'Artículo 19' },
-        { id: '20', title: 'Artículo 20' },
-      ],
-    },
-  ];
 
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -139,9 +34,48 @@ const ListaCategorias = () => {
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingArticle, setEditingArticle] = useState({ id: '', title: '' });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [articles, setArticles] = useState<any[]>([]); // Ajusta el tipo según lo que necesites
 
-  // Inicializa el estado de los artículos
-  const [articles, setArticles] = useState(initialCategoriesData.flatMap(category => category.articles));
+  const fetchCategories = async (userId: number) => {
+    try {
+      const response = await fetch(`${BASE_URL}/categories/${userId}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data: Category[] = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+  
+  const fetchArticles = async (userId: number) => {
+    try {
+        const response = await fetch(`${BASE_URL}/articles_list/${userId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+        console.log('Fetched articles:', data);
+        setArticles(data);
+    } catch (error) {
+        console.error('Error fetching articles:', error);
+    }
+};
+
+  useEffect(() => {
+    // Suponiendo que tienes un ID de usuario disponible
+    const userId = 1; // Cambia esto por el ID real del usuario
+    fetchCategories(userId);
+  }, []);
 
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
@@ -170,17 +104,17 @@ const ListaCategorias = () => {
     return date.toLocaleDateString('es-ES', options);
   };
 
-  const renderCategoryItem = ({ item }: { item: { id: string; title: string; color: string } }) => (
+  const renderCategoryItem = ({ item }: { item: Category }) => (
     <TouchableOpacity
       style={[styles.categoryItem, { backgroundColor: item.color }]}
       onPress={() =>
         navigation.navigate('CategoriaSeleccionada', {
-          categoryId: item.id,
-          categoryTitle: item.title,
+          categoryId: item.id.toString(), // Convertir número a string
+          categoryTitle: item.nombre,
           categoryColor: item.color,
         })
       }>
-      <Text style={styles.categoryTitle}>{item.title}</Text>
+      <Text style={styles.categoryTitle}>{item.nombre}</Text>
     </TouchableOpacity>
   );
 
@@ -257,6 +191,7 @@ const ListaCategorias = () => {
     </View>
   );
 
+
   const getSortedArticles = () => {
     return articles.sort((a, b) => {
       const aStarred = starredArticles.includes(a.id);
@@ -266,8 +201,6 @@ const ListaCategorias = () => {
       return 0;
     });
   };
-
-
 
   return (
     <View style={styles.container}>
@@ -302,9 +235,9 @@ const ListaCategorias = () => {
 
       <View style={{ marginTop: 20, paddingHorizontal: 10 }}>
         <FlatList
-          data={initialCategoriesData}
+          data={categories}
           renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 10 }}
@@ -317,6 +250,7 @@ const ListaCategorias = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.articleList}
       />
+
 
       {showDatePicker && (
         <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
@@ -332,79 +266,49 @@ const ListaCategorias = () => {
           activeOpacity={1}
           onPressOut={() => setModalVisible(false)}>
           <View style={[styles.modalContainer, { top: modalPosition.top, left: modalPosition.left }]}>
-            <View style={styles.modalContent}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleEdit}>
-                <Ionicons name="create-outline" size={24} color="white" style={styles.modalIcon} />
-                <Text style={styles.modalButtonText}>Editar</Text>
-              </TouchableOpacity>
-              <View style={styles.separator} />
-              <TouchableOpacity style={styles.modalButton} onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={24} color="white" style={styles.modalIcon} />
-                <Text style={styles.modalButtonText}>Eliminar</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity onPress={handleEdit} style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>Editar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleDelete} style={styles.modalButton}>
+              <Text style={styles.modalButtonText}>Eliminar</Text>
+            </TouchableOpacity>
           </View>
         </TouchableOpacity>
       </Modal>
 
       <Modal
         transparent={true}
+        animationType="slide"
         visible={confirmModalVisible}
-        animationType="fade"
-        onRequestClose={() => setConfirmModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalBackground}
-          activeOpacity={1}
-          onPressOut={() => setConfirmModalVisible(false)}
-        >
-          <View style={styles.confirmModalContainer}>
-            <View style={styles.confirmModalContent}>
-              <Text style={styles.confirmModalText}>{`¿Seguro que quieres eliminar este artículo?\n"${selectedArticleTitle}"?`}</Text>
-              <View style={styles.confirmModalButtons}>
-                <TouchableOpacity style={styles.confirmButton} onPress={confirmDeleteArticle}>
-                  <Text style={styles.confirmButtonText}>Confirmar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelButton} onPress={cancelDeleteArticle}>
-                  <Text style={styles.cancelButtonText}>Cancelar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+        onRequestClose={cancelDeleteArticle}>
+        <View style={styles.confirmModalContainer}>
+          <Text style={styles.confirmModalText}>¿Estás seguro de que deseas eliminar este artículo?</Text>
+          <View style={styles.confirmModalButtons}>
+            <TouchableOpacity onPress={confirmDeleteArticle} style={styles.confirmModalButtons}>
+              <Text style={styles.confirmModalButtons}>Sí</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={cancelDeleteArticle} style={styles.confirmModalButtons}>
+              <Text style={styles.confirmModalButtons}>No</Text>
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
 
       <Modal
         transparent={true}
+        animationType="slide"
         visible={editModalVisible}
-        animationType="fade"
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalBackground}
-          activeOpacity={1}
-          onPressOut={() => setEditModalVisible(false)}
-        >
-          <View style={styles.editModalContainer}>
-            <View style={styles.editModalContent}>
-              <Text style={styles.editModalTitle}>Editar Artículo</Text>
-              <TextInput
-                style={styles.editInput}
-                value={editingArticle.title}
-                onChangeText={(text) => setEditingArticle(prev => ({ ...prev, title: text }))}
-                placeholder="Título del artículo"
-              />
-              <View style={styles.editModalButtons}>
-                <TouchableOpacity style={styles.saveButton} onPress={handleSaveEdit}>
-                  <Text style={styles.buttonText}>Guardar</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.cancelButton} onPress={() => setEditModalVisible(false)}>
-                  <Text style={styles.buttonText}>Cancelar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
+        onRequestClose={() => setEditModalVisible(false)}>
+        <View style={styles.editModalContainer}>
+          <TextInput
+            value={editingArticle.title}
+            onChangeText={(text) => setEditingArticle((prev) => ({ ...prev, title: text }))}
+            style={styles.editInput}
+          />
+          <TouchableOpacity onPress={handleSaveEdit} style={styles.saveButton}>
+            <Text style={styles.saveButton}>Guardar</Text>
+          </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );
@@ -512,7 +416,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    
+
   },
   modalContainer: {
     position: 'absolute',
@@ -609,8 +513,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#000033', 
-  },  
+    color: '#000033',
+  },
   editInput: {
     height: 40,
     borderColor: '#000033',
@@ -618,7 +522,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
     borderRadius: 10,
-    color: '#000033', 
+    color: '#000033',
 
   },
   editModalButtons: {
@@ -629,14 +533,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#FE3777',
     padding: 10,
     borderRadius: 10,
-    width: '45%',  
-    alignItems: 'center',  
+    width: '45%',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
   },
-  
+
 });
 
 export default ListaCategorias;

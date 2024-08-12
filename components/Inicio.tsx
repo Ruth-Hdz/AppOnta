@@ -95,21 +95,27 @@ const Inicio = () => {
 
   const confirmDeleteCategory = async () => {
     if (selectedCategoryId !== null) {
-      try {
-        const response = await fetch(`${BASE_URL}/categories/${selectedCategoryId}`, {
-          method: 'DELETE',
-        });
-        if (response.ok) {
-          setCategories(categories.filter((category) => category.id !== selectedCategoryId));
-        } else {
-          console.error('Error deleting category');
+        try {
+            const response = await fetch(`${BASE_URL}/categories/${userId}`, {
+                method: 'DELETE',
+            });
+
+            console.log('Response status:', response.status);
+
+            if (response.ok) {
+                console.log('Category deleted successfully');
+                setCategories(categories.filter((category) => category.id !== userId));
+                setConfirmModalVisible(false);
+            } else {
+                console.error('Error deleting category');
+            }
+        } catch (error) {
+            console.error('Error deleting category:', error);
         }
-      } catch (error) {
-        console.error('Error deleting category:', error);
-      }
-      setConfirmModalVisible(false);
     }
-  };
+};
+
+  
 
   const cancelDeleteCategory = () => {
     setSelectedCategoryId(null);
@@ -164,7 +170,7 @@ const Inicio = () => {
               </View>
             </TouchableOpacity>
             <View style={styles.categoryIcons}>
-            <TouchableOpacity onPress={handleCreateArticle}>
+              <TouchableOpacity onPress={handleCreateArticle}>
                 <Ionicons name="add" size={24} color="#ffffff" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
