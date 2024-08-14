@@ -24,7 +24,11 @@ const CrearArticulo = () => {
     const fetchCategorias = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem('userId');
-        const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
+        if (!storedUserId) {
+          console.error('User ID not found');
+          return;
+        }
+        const id_usuario = parseInt(storedUserId, 10);
 
         const response = await fetch(`${BASE_URL}/categories/${id_usuario}`);
         const data = await response.json();
@@ -51,16 +55,20 @@ const CrearArticulo = () => {
   };
 
   const handleGuardar = async () => {
-    // Verificar si todos los campos están completos
     if (!titulo || !texto || !categoriaSeleccionada) {
       Alert.alert('Error', 'Rellena todos los campos');
       return;
     }
-
+  
     try {
       const storedUserId = await AsyncStorage.getItem('userId');
-      const id_usuario = storedUserId ? parseInt(storedUserId, 10) : 1;
-
+      const id_usuario = storedUserId ? parseInt(storedUserId, 10) : null;
+  
+      if (!id_usuario) {
+        Alert.alert('Error', 'No se pudo obtener el ID del usuario');
+        return;
+      }
+  
       const response = await fetch(`${BASE_URL}/articles`, {
         method: 'POST',
         headers: {
@@ -69,19 +77,26 @@ const CrearArticulo = () => {
         body: JSON.stringify({
           titulo,
           texto,
-          prioridad: 1, // Puedes ajustar esto según tu lógica
-          id_categoria: categoriaSeleccionada,
+          prioridad: 1, // Puedes ajustar esto si quieres que sea configurable
+          id_categoria: parseInt(categoriaSeleccionada, 10),
+          id_usuario
         }),
       });
-
+  
       if (response.ok) {
-        setSuccessMessage('Artículo guardado con éxito');
+        const result = await response.json();
+        setSuccessMessage(result.message);
         setShowModal(true);
+        setTitulo('');
+        setTexto('');
+        setCategoriaSeleccionada('');
       } else {
-        console.error('Error al guardar el artículo:', response.statusText);
+        const errorResponse = await response.json();
+        Alert.alert('Error', errorResponse.error || 'Error al guardar el artículo');
       }
     } catch (error) {
       console.error('Error al guardar el artículo:', error);
+      Alert.alert('Error', 'Error al guardar el artículo');
     }
   };
 
@@ -93,7 +108,6 @@ const CrearArticulo = () => {
       categoryTitle: 'defaultTitle' 
     });
   };
-  
 
   return (
     <View style={styles.container}>
@@ -168,7 +182,6 @@ const CrearArticulo = () => {
           </View>
         </View>
       </Modal>
-
     </View>
   );
 };

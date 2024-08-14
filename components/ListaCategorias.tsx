@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Background2 from './Background2';
-import { RootStackParamList } from './types';
 import BASE_URL from '../config';
 
 const { width } = Dimensions.get('window');
 
-interface Category {
-  id: number;
-  nombre: string;
-  icono: string;
-  color: string;
-  id_usuario: number;
-  numero_articulos: number;
-}
+import { RootStackParamList } from './types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Perfil'>;
 
@@ -30,52 +23,39 @@ const ListaCategorias = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
-  const [selectedArticleTitle, setSelectedArticleTitle] = useState<string | null>(null);
-  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingArticle, setEditingArticle] = useState({ id: '', title: '' });
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [articles, setArticles] = useState<any[]>([]); // Ajusta el tipo según lo que necesites
-
-  const fetchCategories = async (userId: number) => {
-    try {
-      const response = await fetch(`${BASE_URL}/categories/${userId}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data: Category[] = await response.json();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-  
-  const fetchArticles = async (userId: number) => {
-    try {
-        const response = await fetch(`${BASE_URL}/articles_list/${userId}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json();
-        console.log('Fetched articles:', data);
-        setArticles(data);
-    } catch (error) {
-        console.error('Error fetching articles:', error);
-    }
-};
+  const [categories, setCategories] = useState<{ id: string; nombre: string; color: string }[]>([]);
+  const [articles, setArticles] = useState<{ id: string; titulo: string; id_categoria: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Suponiendo que tienes un ID de usuario disponible
-    const userId = 1; // Cambia esto por el ID real del usuario
-    fetchCategories(userId);
+    const fetchUserData = async () => {
+      try {
+        setLoading(true); // Agrega esto para mostrar un indicador de carga
+        const userId = await AsyncStorage.getItem('userId');
+        
+        if (!userId) {
+          throw new Error('No se encontró el ID del usuario');
+        }
+  
+        const response = await fetch(`${BASE_URL}/user/${userId}`);
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+        setCategories(data.categories || []);
+        setArticles(data.articles || []);
+      } catch (error) {
+        console.error('Error al obtener datos del usuario:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchUserData();
   }, []);
+  
 
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
@@ -104,23 +84,22 @@ const ListaCategorias = () => {
     return date.toLocaleDateString('es-ES', options);
   };
 
-  const renderCategoryItem = ({ item }: { item: Category }) => (
-    <TouchableOpacity
-      style={[styles.categoryItem, { backgroundColor: item.color }]}
-      onPress={() =>
-        navigation.navigate('CategoriaSeleccionada', {
-          categoryId: item.id.toString(), // Convertir número a string
-          categoryTitle: item.nombre,
-          categoryColor: item.color,
-        })
-      }>
+  const renderCategoryItem = ({ item }: { item: { id: string; nombre: string; color: string } }) => (
+    <TouchableOpacity 
+      style={[styles.categoryItem, { backgroundColor: item.color }]} 
+      onPress={() => navigation.navigate('CategoriaSeleccionada', { 
+        categoryId: item.id,
+        categoryTitle: item.nombre,
+        categoryColor: item.color 
+      })}
+    >
       <Text style={styles.categoryTitle}>{item.nombre}</Text>
     </TouchableOpacity>
   );
 
   const toggleStarred = (id: string) => {
-    setStarredArticles((prevStarred) =>
-      prevStarred.includes(id) ? prevStarred.filter((item) => item !== id) : [...prevStarred, id]
+    setStarredArticles((prevStarred) => 
+      prevStarred.includes(id) ? prevStarred.filter(item => item !== id) : [...prevStarred, id]
     );
   };
 
@@ -128,69 +107,45 @@ const ListaCategorias = () => {
     navigation.navigate('CrearArticulo');
   };
 
-  const handleEllipsisPress = (id: string, y: number, x: number, title: string) => {
+  const handleEllipsisPress = (id: string, y: number, x: number) => {
     setSelectedArticle(id);
-    setSelectedArticleTitle(title);
+  
     const { height, width } = Dimensions.get('window');
     const adjustedX = Math.max(10, Math.min(x - 60, width - 170));
     const adjustedY = Math.max(10, y - 50);
+  
     setModalPosition({ top: adjustedY, left: adjustedX });
     setModalVisible(true);
   };
 
   const handleEdit = () => {
-    if (selectedArticle && selectedArticleTitle) {
-      setEditingArticle({ id: selectedArticle, title: selectedArticleTitle });
-      setEditModalVisible(true);
-    }
+    console.log('Edit', selectedArticle);
     setModalVisible(false);
-  };
-
-  const handleSaveEdit = () => {
-    setArticles(prevArticles =>
-      prevArticles.map(article =>
-        article.id === editingArticle.id ? { ...article, title: editingArticle.title } : article
-      )
-    );
-    setEditModalVisible(false);
   };
 
   const handleDelete = () => {
+    console.log('Delete', selectedArticle);
     setModalVisible(false);
-    setConfirmModalVisible(true);
   };
 
-  const confirmDeleteArticle = () => {
-    setConfirmModalVisible(false);
-    if (selectedArticle) {
-      setArticles(prevArticles => prevArticles.filter(article => article.id !== selectedArticle));
-      setStarredArticles(prevStarred => prevStarred.filter(id => id !== selectedArticle));
-    }
-  };
-
-  const cancelDeleteArticle = () => {
-    setConfirmModalVisible(false);
-  };
-
-  const renderArticleItem = ({ item }: { item: { id: string; title: string } }) => (
+  const renderArticleItem = ({ item }) => (
     <View style={styles.articleItem}>
-      <Text style={styles.articleTitle}>{item.title}</Text>
+      <Text style={styles.articleTitle}>{item.titulo}</Text>
       <View style={styles.articleActions}>
         <TouchableOpacity onPress={() => toggleStarred(item.id)}>
-          <Ionicons
-            name={starredArticles.includes(item.id) ? 'star' : 'star-outline'}
-            size={24}
-            color="#FE9526"
+          <Ionicons 
+            name={starredArticles.includes(item.id) ? "star" : "star-outline"} 
+            size={24} 
+            color="#FE9526" 
             style={styles.starIcon}
           />
         </TouchableOpacity>
-        <TouchableOpacity onPress={(e) => handleEllipsisPress(item.id, e.nativeEvent.pageY, e.nativeEvent.pageX, item.title)}>
+        <TouchableOpacity onPress={(e) => handleEllipsisPress(item.id, e.nativeEvent.pageY, e.nativeEvent.pageX)}>
           <Ionicons name="ellipsis-vertical" size={24} color="#000033" />
         </TouchableOpacity>
       </View>
     </View>
   );
-
 
   const getSortedArticles = () => {
     return articles.sort((a, b) => {
@@ -201,6 +156,10 @@ const ListaCategorias = () => {
       return 0;
     });
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" />;
+  }
 
   return (
     <View style={styles.container}>
@@ -237,7 +196,7 @@ const ListaCategorias = () => {
         <FlatList
           data={categories}
           renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 10 }}
@@ -251,64 +210,40 @@ const ListaCategorias = () => {
         contentContainerStyle={styles.articleList}
       />
 
-
       {showDatePicker && (
-        <DateTimePicker value={date} mode="date" display="default" onChange={handleDateChange} />
+        <DateTimePicker
+          value={date}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
       )}
 
       <Modal
         transparent={true}
         animationType="fade"
         visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}>
+        onRequestClose={() => setModalVisible(false)}
+      >
         <TouchableOpacity
           style={styles.modalBackground}
           activeOpacity={1}
-          onPressOut={() => setModalVisible(false)}>
+          onPressOut={() => setModalVisible(false)}
+        >
           <View style={[styles.modalContainer, { top: modalPosition.top, left: modalPosition.left }]}>
-            <TouchableOpacity onPress={handleEdit} style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Editar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleDelete} style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Eliminar</Text>
-            </TouchableOpacity>
+            <View style={styles.modalContent}>
+              <TouchableOpacity style={styles.modalButton} onPress={handleEdit}>
+                <Ionicons name="create-outline" size={24} color="white" style={styles.modalIcon} />
+                <Text style={styles.modalButtonText}>Editar</Text>
+              </TouchableOpacity>
+              <View style={styles.separator} />
+              <TouchableOpacity style={styles.modalButton} onPress={handleDelete}>
+                <Ionicons name="trash-outline" size={24} color="white" style={styles.modalIcon} />
+                <Text style={styles.modalButtonText}>Eliminar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </TouchableOpacity>
-      </Modal>
-
-      <Modal
-        transparent={true}
-        animationType="slide"
-        visible={confirmModalVisible}
-        onRequestClose={cancelDeleteArticle}>
-        <View style={styles.confirmModalContainer}>
-          <Text style={styles.confirmModalText}>¿Estás seguro de que deseas eliminar este artículo?</Text>
-          <View style={styles.confirmModalButtons}>
-            <TouchableOpacity onPress={confirmDeleteArticle} style={styles.confirmModalButtons}>
-              <Text style={styles.confirmModalButtons}>Sí</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={cancelDeleteArticle} style={styles.confirmModalButtons}>
-              <Text style={styles.confirmModalButtons}>No</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        transparent={true}
-        animationType="slide"
-        visible={editModalVisible}
-        onRequestClose={() => setEditModalVisible(false)}>
-        <View style={styles.editModalContainer}>
-          <TextInput
-            value={editingArticle.title}
-            onChangeText={(text) => setEditingArticle((prev) => ({ ...prev, title: text }))}
-            style={styles.editInput}
-          />
-          <TouchableOpacity onPress={handleSaveEdit} style={styles.saveButton}>
-            <Text style={styles.saveButton}>Guardar</Text>
-          </TouchableOpacity>
-        </View>
       </Modal>
     </View>
   );
@@ -388,15 +323,17 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   articleItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    width: width - 40,
+    height: 70,
     backgroundColor: 'white',
     borderWidth: 2,
     borderColor: '#000033',
     borderRadius: 10,
-    padding: 15,
+    padding: 10,
     marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   articleTitle: {
     color: '#000033',
@@ -414,9 +351,9 @@ const styles = StyleSheet.create({
   },
   modalBackground: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-
   },
   modalContainer: {
     position: 'absolute',
@@ -447,100 +384,6 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     marginVertical: 5,
   },
-  confirmModalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  confirmModalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-    borderColor: '#000033',
-    borderWidth: 2,
-  },
-  confirmModalText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  confirmModalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '90%',
-    borderRadius: 10,
-
-  },
-  confirmButton: {
-    backgroundColor: '#FE3777',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  confirmButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  cancelButton: {
-    backgroundColor: '#0270D0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  cancelButtonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  editModalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '90%',
-  },
-  editModalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    borderColor: '#000033',
-    borderWidth: 2,
-  },
-  editModalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#000033',
-  },
-  editInput: {
-    height: 40,
-    borderColor: '#000033',
-    borderWidth: 2,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    color: '#000033',
-
-  },
-  editModalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  saveButton: {
-    backgroundColor: '#FE3777',
-    padding: 10,
-    borderRadius: 10,
-    width: '45%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-  },
-
 });
 
 export default ListaCategorias;

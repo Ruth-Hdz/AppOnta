@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, FlatList, Dimensions, Modal, TouchableWithoutFeedback } from 'react-native';
 import Background from './Background';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useNavigation, NavigationProp, useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from './types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BASE_URL from '../config';
 
-// Define the Category interface
+const { width } = Dimensions.get('window');
+
 interface Category {
   id: number;
   nombre: string;
   icono: string;
   color: string;
-  id_usuario: number;
-  numero_articulos: number; 
+  numero_articulos: number;
 }
-
-const { width } = Dimensions.get('window');
 
 const Inicio = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -26,49 +24,39 @@ const Inicio = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [username, setUsername] = useState('');
-  const [userId, setUserId] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchUserData();
+  const loadUserData = useCallback(async () => {
+    try {
+      const storedUsername = await AsyncStorage.getItem('username');
+      const userId = await AsyncStorage.getItem('userId');
+
+      if (storedUsername) {
+        setUsername(storedUsername);
+      }
+
+      if (userId) {
+        const response = await fetch(`${BASE_URL}/user/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCategories(data.categories || []);
+        } else {
+          console.error('Error al obtener las categorías del servidor');
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar datos del usuario:', error);
+    }
   }, []);
 
   useEffect(() => {
-    if (userId !== null) {
-      fetchCategories(userId);
-    }
-  }, [userId]);
+    loadUserData();
+  }, [loadUserData]);
 
-  const fetchUserData = async () => {
-    try {
-      const storedUsername = await AsyncStorage.getItem('username');
-      const storedUserId = await AsyncStorage.getItem('userId');
-      if (storedUsername) {
-        setUsername(storedUsername);
-      } else {
-        setUsername('Usuario');
-      }
-      if (storedUserId) {
-        setUserId(parseInt(storedUserId, 10));
-      } else {
-        setUserId(1); // Valor por defecto si no hay id de usuario
-      }
-    } catch (error) {
-      console.error('Error al obtener los datos del usuario:', error);
-    }
-  };
-
-  const fetchCategories = async (userId: number) => {
-    try {
-      const response = await fetch(`${BASE_URL}/categories/${userId}`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data: Category[] = await response.json();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [loadUserData])
+  );
 
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
@@ -93,39 +81,49 @@ const Inicio = () => {
     setConfirmModalVisible(true);
   };
 
-  const confirmDeleteCategory = async () => {
-    if (selectedCategoryId !== null) {
-        try {
-            const response = await fetch(`${BASE_URL}/categories/${userId}`, {
-                method: 'DELETE',
-            });
-
-            console.log('Response status:', response.status);
-
-            if (response.ok) {
-                console.log('Category deleted successfully');
-                setCategories(categories.filter((category) => category.id !== userId));
-                setConfirmModalVisible(false);
-            } else {
-                console.error('Error deleting category');
-            }
-        } catch (error) {
-            console.error('Error deleting category:', error);
-        }
-    }
-};
-
-  
-
   const cancelDeleteCategory = () => {
     setSelectedCategoryId(null);
     setConfirmModalVisible(false);
   };
 
+  const deleteCategory = async (categoryId: number) => {
+    try {
+      const response = await fetch(`${BASE_URL}/categories/${categoryId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar la categoría');
+      }
+    } catch (error) {
+      console.error('Error al eliminar la categoría:', error);
+      throw error;
+    }
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (selectedCategoryId !== null) {
+      try {
+        await deleteCategory(selectedCategoryId);
+        setCategories(prevCategories => 
+          prevCategories.filter(category => category.id !== selectedCategoryId)
+        );
+      } catch (error) {
+        console.error('Error al eliminar la categoría:', error);
+      } finally {
+        setConfirmModalVisible(false);
+        setSelectedCategoryId(null);
+      }
+    }
+  };
+
   const handleCategoryPress = (categoryId: number, categoryTitle: string) => {
     navigation.navigate('ListaCategorias', { categoryId: categoryId.toString(), categoryTitle });
   };
-
+  
   return (
     <View style={styles.container}>
       <Background />
@@ -136,7 +134,7 @@ const Inicio = () => {
             <Ionicons name="menu" size={32} color="#ffffff" style={styles.icon} />
           </TouchableOpacity>
         </View>
-        <Text style={styles.text}>{username || 'Usuario'}</Text>
+        <Text style={styles.text}>{username}</Text>
         <View style={styles.searchBarContainer}>
           <Ionicons name="search" size={24} color="#000033" style={styles.searchIcon} />
           <TextInput
@@ -182,6 +180,7 @@ const Inicio = () => {
         keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         contentContainerStyle={styles.categoriesList}
+        extraData={categories}
       />
 
       {/* Modal de Opciones */}
@@ -231,7 +230,6 @@ const Inicio = () => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -397,3 +395,4 @@ const styles = StyleSheet.create({
 });
 
 export default Inicio;
+

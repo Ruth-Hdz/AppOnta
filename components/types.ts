@@ -2,7 +2,7 @@
 export type RootStackParamList = {
   Login: undefined;
   Registro: undefined;
-  Inicio: undefined;
+  Inicio: { refresh?: boolean };
   RecuperarContrasena: undefined;
   Perfil: undefined;
   CrearArticulo: undefined;

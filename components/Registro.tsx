@@ -33,43 +33,46 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
 
   const handleRegister = async () => {
     if (!username || !email || !contraseña) {
-      setError('Por favor, completa todos los campos');
-      return;
+        setError('Por favor, completa todos los campos');
+        return;
     }
-  
+
     if (!aceptaTerminos) {
-      setError('Debes aceptar los términos y condiciones');
-      return;
+        setError('Debes aceptar los términos y condiciones');
+        return;
     }
-  
+
     try {
-      const response = await fetch(`${BASE_URL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nombre: username,
-          email: email,
-          contraseña: contraseña,
-          acepta_terminos: aceptaTerminos,
-        }),
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        setSuccess('Usuario registrado exitosamente');
-        // No es necesario interactuar con Firebase aquí
-      } else {
-        setError(data.error || 'Error al registrar el usuario');
-      }
+        const response = await fetch(`${BASE_URL}/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                nombre: username,
+                correo_electronico: email,
+                contrasena: contraseña,
+                acepta_terminos: aceptaTerminos,
+            }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            setSuccess('Usuario registrado exitosamente');
+            
+            // Redirige al usuario a la página de inicio de sesión
+            navigation.navigate('Login'); // Reemplaza 'Login' con el nombre de tu ruta de inicio de sesión
+            
+        } else {
+            setError(data.error || 'Error al registrar el usuario');
+        }
     } catch (error) {
-      console.error('Error detallado:', error);
-      setError('Error de conexión. Por favor, intenta más tarde.');
+        console.error('Error detallado:', error);
+        setError('Error de conexión. Por favor, intenta más tarde.');
     }
-  };
-  
+};
+
 
   return (
     <View style={styles.container}>

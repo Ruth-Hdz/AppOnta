@@ -7,6 +7,7 @@ import { Feather } from '@expo/vector-icons';
 import BASE_URL from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+
 type RootStackParamList = {
   Login: undefined;
   Registro: undefined;
@@ -29,6 +30,9 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
+    console.log('Correo:', correo);
+    console.log('Contraseña:', contraseña);
+  
     if (!correo || !contraseña) {
       setError('Por favor, completa todos los campos');
       return;
@@ -41,8 +45,8 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: correo,
-          contraseña: contraseña,
+          correo_electronico: correo,
+          contrasena: contraseña,
         }),
       });
   
@@ -50,10 +54,25 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
       console.log('Respuesta del servidor:', data);
   
       if (response.ok) {
-        const username = data.nombre || 'Usuario'; // Usa un valor predeterminado si el nombre no está disponible
-        await AsyncStorage.setItem('userEmail', correo);
-        await AsyncStorage.setItem('username', username); // Asegúrate de que el nombre no sea undefined
-        console.log('Nombre de usuario guardado:', username);
+        const { user, categories } = data;
+  
+        if (user) {
+          await AsyncStorage.setItem('userEmail', user.correo_electronico || '');
+          await AsyncStorage.setItem('username', user.nombre || '');
+          await AsyncStorage.setItem('userId', user.id ? user.id.toString() : '');
+  
+          // Agregar console.log para verificar el ID guardado
+          const savedUserId = await AsyncStorage.getItem('userId');
+          console.log('ID del usuario guardado:', savedUserId);
+        }
+  
+        if (categories && Array.isArray(categories) && categories.length > 0) {
+          await AsyncStorage.setItem('userCategories', JSON.stringify(categories));
+        } else {
+          await AsyncStorage.setItem('userCategories', JSON.stringify([]));
+        }
+  
+        console.log('Nombre de usuario guardado:', user?.nombre || 'Usuario');
         navigation.navigate('Inicio');
       } else {
         setError(data.error || 'Error al iniciar sesión');

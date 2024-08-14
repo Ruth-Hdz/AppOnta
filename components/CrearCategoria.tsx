@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, Alert, TextInput, TouchableOpacity, Modal, FlatList, Pressable } from 'react-native';
 import Background2 from './Background2';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
 import BASE_URL from '../config';
 import { colorList, iconList, IconName } from './IconsAndColors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type CrearCategoriaScreenNavigationProp = StackNavigationProp<RootStackParamList, 'CrearCategoria'>;
-
 
 const CrearCategoria = () => {
   const navigation = useNavigation<CrearCategoriaScreenNavigationProp>();
@@ -27,9 +27,7 @@ const CrearCategoria = () => {
 
   const handleGuardar = () => {
     if (categoryName && selectedIcon && selectedColor) {
-      setSuccessMessage('Categoría guardada con éxito');
-      setShowModal(true);
-      // Aquí podrías guardar la categoría en tu estado global o base de datos
+      handleCreateCategory();
     } else {
       setSuccessMessage('Por favor, complete todos los campos');
       setShowModal(true);
@@ -39,10 +37,11 @@ const CrearCategoria = () => {
   const closeModal = () => {
     setShowModal(false);
     setSuccessMessage('');
-    if (successMessage === 'Categoría guardada con éxito') {
-      navigation.navigate('Inicio');
-    }
-  };
+
+    // Navegar a la pantalla 'Inicio' con el parámetro opcional 'refresh'
+    navigation.navigate('Inicio', { refresh: true });
+};
+
 
   const renderIconItem = ({ item }: { item: IconName }) => (
     <TouchableOpacity onPress={() => {
@@ -62,13 +61,22 @@ const CrearCategoria = () => {
       }}
     />
   );
+
   const handleCreateCategory = async () => {
     if (!categoryName || !selectedIcon) {
       Alert.alert('Error', 'Debes completar todos los campos.');
       return;
     }
-
+  
     try {
+      // Obtener el ID del usuario desde AsyncStorage
+      const userId = await AsyncStorage.getItem('userId');
+  
+      if (!userId) {
+        Alert.alert('Error', 'No se pudo obtener el ID del usuario.');
+        return;
+      }
+  
       const response = await fetch(`${BASE_URL}/categories`, {
         method: 'POST',
         headers: {
@@ -78,128 +86,134 @@ const CrearCategoria = () => {
           nombre: categoryName,
           icono: selectedIcon,
           color: selectedColor,
-          id_usuario: 1, // Aquí deberías pasar el ID del usuario autenticado
+          id_usuario: userId, // Usar el ID del usuario autenticado
         }),
       });
-
+  
       if (response.ok) {
         const result = await response.json();
-        Alert.alert('Éxito', 'Categoría creada correctamente.');
-        // Aquí puedes manejar la redirección o limpieza del formulario
+        setSuccessMessage('Categoría creada con éxito');
+        setShowModal(true);
+        // Aquí puedes manejar la redirección o limpieza del formulario si es necesario
       } else {
-        Alert.alert('Error', 'No se pudo crear la categoría.');
+        // Mostrar el mensaje de error recibido del servidor
+        const errorData = await response.json();
+        const errorMessage = errorData.error || 'No se pudo crear la categoría.';
+        setSuccessMessage(errorMessage);
+        setShowModal(true);
       }
     } catch (error) {
       console.error('Error al crear la categoría:', error);
-      Alert.alert('Error', 'Hubo un problema al conectar con el servidor.');
+      setSuccessMessage('Hubo un problema al conectar con el servidor.' );
+      setShowModal(true);
     }
   };
-
+  
   return (
     <View style={styles.container}>
-    <Background2 />
-    <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <Ionicons name="arrow-back" size={30} color="white" />
+      <Background2 />
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+          <Ionicons name="arrow-back" size={30} color="white" />
+        </TouchableOpacity>
+        <Text style={styles.title}>Nueva Categoría</Text>
+      </View>
+      <View style={styles.content}>
+        <Text style={styles.subtitle}>Crear una nueva categoría</Text>
+        <Text style={styles.instructions}>
+          Puede personalizar sus categorías con íconos y colores únicos,
+          agregando un toque personal a su organización.
+        </Text>
+      </View>
+      <View style={styles.box}>
+        <TextInput
+          style={[styles.input, { marginBottom: 20 }]}
+          placeholder="Escribe el nombre de la categoría"
+          value={categoryName}
+          onChangeText={setCategoryName}
+        />
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={() => setShowIconPicker(true)}>
+            <Ionicons name={selectedIcon || "add-circle-outline"} size={24} color="black" />
+            <Text style={{ marginLeft: 10 }}>Icono</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => setShowColorPicker(true)}>
+            <View style={[styles.colorPreview, { backgroundColor: selectedColor }]}></View>
+            <Text style={{ marginLeft: 10 }}>Color</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <TouchableOpacity style={styles.saveButton} onPress={handleGuardar}>
+        <Text style={styles.saveButtonText}>Guardar</Text>
       </TouchableOpacity>
-      <Text style={styles.title}>Nueva Categoría</Text>
-    </View>
-    <View style={styles.content}>
-      <Text style={styles.subtitle}>Crear una nueva categoría</Text>
-      <Text style={styles.instructions}>
-        Puede personalizar sus categorías con íconos y colores únicos,
-        agregando un toque personal a su organización.
-      </Text>
-    </View>
-    <View style={styles.box}>
-      <TextInput
-        style={[styles.input, { marginBottom: 20 }]}
-        placeholder="Escribe el nombre de la categoría"
-        value={categoryName}
-        onChangeText={setCategoryName}
-      />
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => setShowIconPicker(true)}>
-          <Ionicons name={selectedIcon || "add-circle-outline"} size={24} color="black" />
-          <Text style={{ marginLeft: 10 }}>Icono</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => setShowColorPicker(true)}>
-          <View style={[styles.colorPreview, { backgroundColor: selectedColor }]}></View>
-          <Text style={{ marginLeft: 10 }}>Color</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-    <TouchableOpacity style={styles.saveButton} onPress={handleCreateCategory}>
-      <Text style={styles.saveButtonText}>Guardar</Text>
-    </TouchableOpacity>
 
-    {/* Modal de éxito */}
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={showModal}
-      onRequestClose={closeModal}
-    >
-      <View style={styles.modalBackground}>
-        <View style={styles.modalContent}>
-          <View style={styles.successCircle}>
-            <Ionicons name="checkmark" size={60} color="white" />
+      {/* Modal de éxito */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={closeModal}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContent}>
+            <View style={styles.successCircle}>
+              <Ionicons name="checkmark" size={60} color="white" />
+            </View>
+            <Text style={styles.modalText}>{successMessage}</Text>
+            <Pressable style={styles.modalCloseButton} onPress={closeModal}>
+              <Ionicons name="close" size={24} color="#000033" />
+            </Pressable>
           </View>
-          <Text style={styles.modalText}>{successMessage}</Text>
-          <Pressable style={styles.modalCloseButton} onPress={closeModal}>
-            <Ionicons name="close" size={24} color="#000033" />
-          </Pressable>
         </View>
-      </View>
-    </Modal>
+      </Modal>
 
-    {/* Modal de selección de icono */}
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={showIconPicker}
-      onRequestClose={() => setShowIconPicker(false)}
-    >
-      <View style={styles.modalBackground}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Selecciona un icono</Text>
-          <FlatList
-            data={iconList}
-            renderItem={renderIconItem}
-            keyExtractor={item => item}
-            numColumns={4}
-          />
-          <TouchableOpacity style={styles.closeButton} onPress={() => setShowIconPicker(false)}>
-            <Text style={styles.closeButtonText}>Cerrar</Text>
-          </TouchableOpacity>
+      {/* Modal de selección de icono */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showIconPicker}
+        onRequestClose={() => setShowIconPicker(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Selecciona un icono</Text>
+            <FlatList
+              data={iconList}
+              renderItem={renderIconItem}
+              keyExtractor={item => item}
+              numColumns={4}
+            />
+            <TouchableOpacity style={styles.closeButton} onPress={() => setShowIconPicker(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
 
-    {/* Modal de selección de color */}
-    <Modal
-      animationType="slide"
-      transparent={true}
-      visible={showColorPicker}
-      onRequestClose={() => setShowColorPicker(false)}
-    >
-      <View style={styles.modalBackground}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalTitle}>Selecciona un color</Text>
-          <FlatList
-            data={colorList}
-            renderItem={renderColorItem}
-            keyExtractor={(item) => item}
-            numColumns={4}
-            contentContainerStyle={styles.colorList}
-          />
-          <TouchableOpacity style={styles.closeButton} onPress={() => setShowColorPicker(false)}>
-            <Text style={styles.closeButtonText}>Cerrar</Text>
-          </TouchableOpacity>
+      {/* Modal de selección de color */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showColorPicker}
+        onRequestClose={() => setShowColorPicker(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Selecciona un color</Text>
+            <FlatList
+              data={colorList}
+              renderItem={renderColorItem}
+              keyExtractor={(item) => item}
+              numColumns={4}
+              contentContainerStyle={styles.colorList}
+            />
+            <TouchableOpacity style={styles.closeButton} onPress={() => setShowColorPicker(false)}>
+              <Text style={styles.closeButtonText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Modal>
-  </View>
+      </Modal>
+    </View>
   );
 };
 

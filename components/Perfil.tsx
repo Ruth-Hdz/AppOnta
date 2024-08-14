@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Background2 from './Background2';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from './types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import BASE_URL from '../config';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase-config';
 
@@ -17,29 +19,69 @@ type Props = {
 };
 
 const Perfil: React.FC<Props> = ({ navigation }) => {
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingEmail, setIsEditingEmail] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const userId = await AsyncStorage.getItem('userId');
+        if (userId) {
+          const response = await fetch(`${BASE_URL}/user/${userId}`);
+          const data = await response.json();
+          setUsername(data.user.nombre);
+          setEmail(data.user.correo_electronico);
+          setPassword(data.user.contrasena);
+        }
+      } catch (error) {
+        console.error('Error al cargar datos del usuario:', error);
+      }
+    };
+    loadUserData();
+  }, []);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const updateUser = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (userId) {
+        await fetch(`${BASE_URL}/user/${userId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nombre: username,
+            correo_electronico: email,
+            contrasena: password,
+          }),
+        });
+        alert('Datos actualizados con éxito');
+      }
+    } catch (error) {
+      console.error('Error al actualizar datos del usuario:', error);
+    }
+  };
+
   const handleBack = () => {
     navigation.goBack();
   };
 
-  const [nombre, setNombre] = useState('Violeta');
-  const [correo, setCorreo] = useState('violeta@example.com');
-  const [contraseña, setContraseña] = useState('12345678'); // Contraseña de ejemplo
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [isEditingEmail, setIsEditingEmail] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // Estado para controlar la visibilidad de la contraseña
-
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword); // Cambiar el estado de visibilidad de la contraseña
-  };
-
   const CambiarContrasena = () => {
-    navigation.navigate('CambiarContrasena'); // Navegar a la pantalla de cambiar contraseña
+    navigation.navigate('CambiarContrasena');
   };
 
   const Salir = async () => {
     try {
-      await signOut(auth); // Cierra la sesión
-      navigation.navigate('Login'); // Redirige a la pantalla de inicio de sesión
+      await signOut(auth);
+      navigation.navigate('Login');
     } catch (error) {
       console.error('Error al cerrar sesión: ', error);
     }
@@ -63,44 +105,50 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
           <Text style={styles.sectionTitle}>Nombre: </Text>
           {isEditingName ? (
             <TextInput
-              value={nombre}
-              onChangeText={setNombre}
+              value={username}
+              onChangeText={setUsername}
               style={styles.input}
             />
           ) : (
-            <Text style={styles.sectionContent}>{nombre}</Text>
+            <Text style={styles.sectionContent}>{username}</Text>
           )}
-          <TouchableOpacity onPress={() => setIsEditingName(!isEditingName)}>
+          <TouchableOpacity onPress={() => {
+            setIsEditingName(!isEditingName);
+            if (!isEditingName) updateUser();
+          }}>
             <Ionicons name={isEditingName ? "checkmark" : "create"} size={24} color="#000033" />
           </TouchableOpacity>
         </View>
         <View style={styles.separator} />
         <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>Correo:</Text>
+          <Text style={styles.sectionTitle}>Correo: </Text>
           {isEditingEmail ? (
             <TextInput
-              value={correo}
-              onChangeText={setCorreo}
+              value={email}
+              onChangeText={setEmail}
               style={styles.input}
             />
           ) : (
-            <Text style={styles.sectionContent}>{correo}</Text>
+            <Text style={styles.sectionContent}>{email}</Text>
           )}
-          <TouchableOpacity onPress={() => setIsEditingEmail(!isEditingEmail)}>
+          <TouchableOpacity onPress={() => {
+            setIsEditingEmail(!isEditingEmail);
+            if (!isEditingEmail) updateUser();
+          }}>
             <Ionicons name={isEditingEmail ? "checkmark" : "create"} size={24} color="#000033" />
           </TouchableOpacity>
         </View>
         <View style={styles.separator} />
         <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>Contraseña:</Text>
-          <Text style={styles.sectionContent}>{showPassword ? contraseña : '********'.slice(0, 9)}</Text>
+          <Text style={styles.sectionTitle}>Contraseña: </Text>
+          <Text style={styles.sectionContent}>{showPassword ? password : '********'.slice(0, 9)}</Text>
           <TouchableOpacity onPress={togglePasswordVisibility}>
             <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={24} color="#000033" />
           </TouchableOpacity>
         </View>
         <View style={styles.separator} />
         <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>Cambiar Contraseña</Text>
+          <Text style={styles.sectionTitle}>Cambiar Contraseña </Text>
           <TouchableOpacity onPress={CambiarContrasena}>
             <Ionicons name="create" size={24} color="#000033" />
           </TouchableOpacity>
