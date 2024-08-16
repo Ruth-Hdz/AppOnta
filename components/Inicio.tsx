@@ -154,34 +154,35 @@ const Inicio = () => {
       </View>
 
       <FlatList
-        data={categories}
-        renderItem={({ item }) => (
-          <View style={[styles.categoryItem, { backgroundColor: item.color }]}>
-            <TouchableOpacity
-              style={styles.categoryContent}
-              onPress={() => handleCategoryPress(item.id, item.nombre)}
-            >
-              <Ionicons name={item.icono} size={32} color="#ffffff" style={styles.categoryIcon} />
-              <View style={styles.categoryTextContainer}>
-                <Text style={styles.categoryTitle}>{item.nombre}</Text>
-                <Text style={styles.categoryArticlesCount}>{item.numero_articulos} artículos</Text>
-              </View>
-            </TouchableOpacity>
-            <View style={styles.categoryIcons}>
-              <TouchableOpacity onPress={handleCreateArticle}>
-                <Ionicons name="add" size={24} color="#ffffff" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
-                <Ionicons name="trash" size={24} color="#ffffff" />
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={styles.categoriesList}
-        extraData={categories}
-      />
+  data={categories}
+  renderItem={({ item }) => (
+    <View style={[styles.categoryItem, { backgroundColor: item.color }]}>
+      <TouchableOpacity
+        style={styles.categoryContent}
+        onPress={() => handleCategoryPress(item.id, item.nombre)}
+      >
+        <Ionicons name={item.icono} size={32} color="#ffffff" style={styles.categoryIcon} />
+        <View style={styles.categoryTextContainer}>
+          <Text style={styles.categoryTitle}>{item.nombre}</Text>
+          <Text style={styles.categoryArticlesCount}>{item.numero_articulos} artículos</Text>
+        </View>
+      </TouchableOpacity>
+      <View style={styles.categoryIcons}>
+        <TouchableOpacity onPress={handleCreateArticle}>
+          <Ionicons name="add" size={24} color="#ffffff" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
+          <Ionicons name="trash" size={24} color="#ffffff" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  )}
+  keyExtractor={(item) => item.id.toString()}
+  numColumns={2}
+  contentContainerStyle={styles.categoriesList}
+  extraData={categories}
+/>
+
 
       {/* Modal de Opciones */}
       <Modal
@@ -307,6 +308,7 @@ const styles = StyleSheet.create({
   },
   categoryIcon: {
     marginRight: 10,
+    marginBottom: 10
   },
   categoryTextContainer: {
     flexDirection: 'column',
@@ -316,6 +318,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#ffffff',
     textAlign: 'left',
+    marginBottom: 5,
   },
   categoryArticlesCount: {
     fontSize: 14,

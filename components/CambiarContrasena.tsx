@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, TextInput, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Background from './Background';  
 import BASE_URL from '../config';
@@ -11,27 +11,35 @@ const CambiarContrasena = () => {
   const [contrasenaActual, setContrasenaActual] = useState('');
   const [nuevaContrasena, setNuevaContrasena] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
+  const [username, setUsername] = useState('');
+  const [showPasswordActual, setShowPasswordActual] = useState(false);
+  const [showPasswordNueva, setShowPasswordNueva] = useState(false);
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const fetchUserData = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem('userId');
+        const storedUsername = await AsyncStorage.getItem('username');
+        
         if (storedUserId) {
           setUserId(storedUserId);
         } else {
           console.error('No se encontró el ID del usuario en AsyncStorage');
           Alert.alert('Error', 'No se pudo obtener el ID del usuario. Por favor, inicie sesión nuevamente.');
-          navigation.navigate('Login' as never); // Asumiendo que tienes una pantalla de Login
+          navigation.navigate('Login' as never);
+        }
+
+        if (storedUsername) {
+          setUsername(storedUsername);
         }
       } catch (error) {
-        console.error('Error al obtener el ID del usuario:', error);
+        console.error('Error al obtener los datos del usuario:', error);
         Alert.alert('Error', 'Hubo un problema al obtener la información del usuario.');
       }
     };
     
-    fetchUserId();
+    fetchUserData();
   }, [navigation]);
-
 
   const handleBack = () => {
     navigation.goBack();
@@ -82,7 +90,7 @@ const CambiarContrasena = () => {
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <Ionicons name="arrow-back" size={30} color="white" />
         </TouchableOpacity>
-        <Text style={styles.appTitle}>VIOLETA</Text>
+        <Text style={styles.appTitle}>{username}</Text>
       </View>
       <View style={styles.titleContainer}>
         <Text style={styles.subTitle}>Cambiar Contraseña</Text>
@@ -93,25 +101,35 @@ const CambiarContrasena = () => {
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Contraseña Actual</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su contraseña actual"
-            placeholderTextColor="#ffffff"
-            secureTextEntry={true}
-            onChangeText={setContrasenaActual}
-            value={contrasenaActual}
-          />
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ingrese su contraseña actual"
+              placeholderTextColor="#ffffff"
+              secureTextEntry={!showPasswordActual}
+              onChangeText={setContrasenaActual}
+              value={contrasenaActual}
+            />
+            <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPasswordActual(!showPasswordActual)}>
+              <Feather name={showPasswordActual ? 'eye' : 'eye-off'} size={24} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
         </View>
         <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>Nueva Contraseña</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ingrese su nueva contraseña"
-            placeholderTextColor="#ffffff"
-            secureTextEntry={true}
-            onChangeText={setNuevaContrasena}
-            value={nuevaContrasena}
-          />
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="Ingrese su nueva contraseña"
+              placeholderTextColor="#ffffff"
+              secureTextEntry={!showPasswordNueva}
+              onChangeText={setNuevaContrasena}
+              value={nuevaContrasena}
+            />
+            <TouchableOpacity style={styles.eyeIcon} onPress={() => setShowPasswordNueva(!showPasswordNueva)}>
+              <Feather name={showPasswordNueva ? 'eye' : 'eye-off'} size={24} color="#ffffff" />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       <View style={styles.buttonContainer}>
@@ -178,10 +196,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  input: {
-    color: '#ffffff',
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#ffffff',
+  },
+  input: {
+    flex: 1,
+    color: '#ffffff',
     paddingVertical: 5,
   },
   buttonContainer: {
@@ -198,6 +221,9 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: 'bold',
     fontSize: 18,
+  },
+  eyeIcon: {
+    padding: 5,
   },
 });
 

@@ -7,8 +7,6 @@ import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from './types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BASE_URL from '../config';
-import { signOut } from 'firebase/auth';
-import { auth } from '../firebase-config';
 
 type PerfilScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Perfil'>;
 type PerfilScreenRouteProp = RouteProp<RootStackParamList, 'Perfil'>;
@@ -106,7 +104,6 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
     }
   };
 
-
   const handleBack = () => {
     navigation.goBack();
   };
@@ -117,7 +114,7 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
 
   const Salir = async () => {
     try {
-      await signOut(auth);
+      await AsyncStorage.removeItem('userId');
       navigation.navigate('Login');
     } catch (error) {
       console.error('Error al cerrar sesión: ', error);
@@ -280,18 +277,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#00C29D',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 30,
+    borderRadius: 20,
   },
   logoutButtonText: {
-    color: '#ffffff',
+    color: 'white',
     fontWeight: 'bold',
-    fontSize: 22,
-    textAlign: 'center',
+    fontSize: 16,
   },
   sectionContent: {
-    flex: 1,
-    fontSize: 17,
+    fontSize: 16,
     color: '#000033',
+    flex: 1,
   },
 });
 
