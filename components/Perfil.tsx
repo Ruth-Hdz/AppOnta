@@ -77,6 +77,35 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
     }
   };
 
+  const updateUserEmail = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      if (userId) {
+        const response = await fetch(`${BASE_URL}/user/${userId}/email`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nuevoCorreo: email,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          Alert.alert('Éxito', 'Correo electrónico actualizado con éxito');
+          setIsEditingEmail(false);
+        } else {
+          Alert.alert('Error', data.error || 'No se pudo actualizar el correo electrónico');
+        }
+      }
+    } catch (error) {
+      console.error('Error al actualizar el correo electrónico del usuario:', error);
+      Alert.alert('Error', 'Hubo un problema al actualizar el correo electrónico');
+    }
+  };
+
 
   const handleBack = () => {
     navigation.goBack();
@@ -143,12 +172,16 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.sectionContent}>{email}</Text>
           )}
           <TouchableOpacity onPress={() => {
-            setIsEditingEmail(!isEditingEmail);
-            if (!isEditingEmail) updateUserName();
+            if (isEditingEmail) {
+              updateUserEmail();
+            } else {
+              setIsEditingEmail(true);
+            }
           }}>
             <Ionicons name={isEditingEmail ? "checkmark" : "create"} size={24} color="#000033" />
           </TouchableOpacity>
         </View>
+
         <View style={styles.separator} />
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>Contraseña: </Text>
