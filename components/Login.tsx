@@ -42,7 +42,7 @@ const Login: React.FC<LoginProps> = ({ navigation }) => {
       const response = await fetch(`${BASE_URL}/login`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json', 
         },
         body: JSON.stringify({
           correo_electronico: correo,

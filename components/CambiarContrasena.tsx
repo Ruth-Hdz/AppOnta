@@ -1,21 +1,78 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, TouchableOpacity, Text, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import Background from './Background';  
+import BASE_URL from '../config';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CambiarContrasena = () => {
   const navigation = useNavigation();
-  const [nombre, setNombre] = useState('');
-  const [contraseña, setContraseña] = useState('');
-  const [correo, setCorreo] = useState('');
+  const [contrasenaActual, setContrasenaActual] = useState('');
+  const [nuevaContrasena, setNuevaContrasena] = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (storedUserId) {
+          setUserId(storedUserId);
+        } else {
+          console.error('No se encontró el ID del usuario en AsyncStorage');
+          Alert.alert('Error', 'No se pudo obtener el ID del usuario. Por favor, inicie sesión nuevamente.');
+          navigation.navigate('Login' as never); // Asumiendo que tienes una pantalla de Login
+        }
+      } catch (error) {
+        console.error('Error al obtener el ID del usuario:', error);
+        Alert.alert('Error', 'Hubo un problema al obtener la información del usuario.');
+      }
+    };
+    
+    fetchUserId();
+  }, [navigation]);
+
 
   const handleBack = () => {
     navigation.goBack();
   };
 
-  const cambiarContra = () => {
-    navigation.goBack();
+  const cambiarContrasena = async () => {
+    if (!contrasenaActual || !nuevaContrasena) {
+      Alert.alert('Error', 'Todos los campos son requeridos.');
+      return;
+    }
+
+    if (!userId) {
+      Alert.alert('Error', 'No se pudo obtener el ID del usuario. Por favor, inicie sesión nuevamente.');
+      navigation.navigate('Login' as never);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/user/${userId}/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contrasenaActual,
+          nuevaContrasena,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Éxito', 'Contraseña actualizada exitosamente');
+        navigation.goBack();
+      } else {
+        Alert.alert('Error', result.error || 'No se pudo actualizar la contraseña.');
+      }
+    } catch (error) {
+      console.error('Error al conectar con el servidor:', error);
+      Alert.alert('Error', 'Error al conectar con el servidor.');
+    }
   };
 
   return (
@@ -35,39 +92,30 @@ const CambiarContrasena = () => {
       </View>
       <View style={styles.formContainer}>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Contraseña</Text>
+          <Text style={styles.inputLabel}>Contraseña Actual</Text>
           <TextInput
             style={styles.input}
             placeholder="Ingrese su contraseña actual"
             placeholderTextColor="#ffffff"
-            onChangeText={setNombre}
-            value={nombre}
+            secureTextEntry={true}
+            onChangeText={setContrasenaActual}
+            value={contrasenaActual}
           />
         </View>
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Nueva contraseña</Text>
+          <Text style={styles.inputLabel}>Nueva Contraseña</Text>
           <TextInput
             style={styles.input}
-            placeholder="*********"
+            placeholder="Ingrese su nueva contraseña"
             placeholderTextColor="#ffffff"
             secureTextEntry={true}
-            onChangeText={setContraseña}
-            value={contraseña}
-          />
-        </View>
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Repite Nueva Contraseña</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="********"
-            placeholderTextColor="#ffffff"
-            onChangeText={setCorreo}
-            value={correo}
+            onChangeText={setNuevaContrasena}
+            value={nuevaContrasena}
           />
         </View>
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.buttonLong} onPress={cambiarContra}>
+        <TouchableOpacity style={styles.buttonLong} onPress={cambiarContrasena}>
           <Text style={styles.buttonText}>Cambiar Contraseña</Text>
         </TouchableOpacity>
       </View>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Background2 from './Background2';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -48,27 +48,35 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
     setShowPassword(!showPassword);
   };
 
-  const updateUser = async () => {
+  const updateUserName = async () => {
     try {
       const userId = await AsyncStorage.getItem('userId');
       if (userId) {
-        await fetch(`${BASE_URL}/user/${userId}`, {
+        const response = await fetch(`${BASE_URL}/user/${userId}/name`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            nombre: username,
-            correo_electronico: email,
-            contrasena: password,
+            nuevoNombre: username,
           }),
         });
-        alert('Datos actualizados con éxito');
+
+        const data = await response.json();
+
+        if (response.ok) {
+          Alert.alert('Éxito', 'Nombre actualizado con éxito');
+          setIsEditingName(false);
+        } else {
+          Alert.alert('Error', data.error || 'No se pudo actualizar el nombre');
+        }
       }
     } catch (error) {
-      console.error('Error al actualizar datos del usuario:', error);
+      console.error('Error al actualizar el nombre del usuario:', error);
+      Alert.alert('Error', 'Hubo un problema al actualizar el nombre');
     }
   };
+
 
   const handleBack = () => {
     navigation.goBack();
@@ -113,8 +121,11 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
             <Text style={styles.sectionContent}>{username}</Text>
           )}
           <TouchableOpacity onPress={() => {
-            setIsEditingName(!isEditingName);
-            if (!isEditingName) updateUser();
+            if (isEditingName) {
+              updateUserName();
+            } else {
+              setIsEditingName(true);
+            }
           }}>
             <Ionicons name={isEditingName ? "checkmark" : "create"} size={24} color="#000033" />
           </TouchableOpacity>
@@ -133,7 +144,7 @@ const Perfil: React.FC<Props> = ({ navigation }) => {
           )}
           <TouchableOpacity onPress={() => {
             setIsEditingEmail(!isEditingEmail);
-            if (!isEditingEmail) updateUser();
+            if (!isEditingEmail) updateUserName();
           }}>
             <Ionicons name={isEditingEmail ? "checkmark" : "create"} size={24} color="#000033" />
           </TouchableOpacity>
