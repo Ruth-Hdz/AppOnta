@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, ActivityIndicator, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
@@ -26,11 +26,12 @@ const ListaCategorias = () => {
   const [categories, setCategories] = useState<{ id: string; nombre: string; color: string }[]>([]);
   const [articles, setArticles] = useState<{ id: string; titulo: string; id_categoria: string }[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalVisible2, setModalVisible2] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setLoading(true); // Agrega esto para mostrar un indicador de carga
+        setLoading(true);
         const userId = await AsyncStorage.getItem('userId');
         
         if (!userId) {
@@ -55,7 +56,6 @@ const ListaCategorias = () => {
   
     fetchUserData();
   }, []);
-  
 
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
@@ -65,7 +65,6 @@ const ListaCategorias = () => {
     navigation.navigate('Inicio');
   };
   
-
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(false);
@@ -104,7 +103,17 @@ const ListaCategorias = () => {
     );
   };
 
+  const handleMoreOptionsPress = () => {
+    setModalVisible2(true);
+  };
+
+  const handleCreateCategory = () => {
+    setModalVisible2(false);
+    navigation.navigate('CrearCategoria');
+  };
+
   const handleCreateArticle = () => {
+    setModalVisible2(false);
     navigation.navigate('CrearArticulo');
   };
 
@@ -161,7 +170,7 @@ const ListaCategorias = () => {
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
-
+  
   return (
     <View style={styles.container}>
       <Background2 />
@@ -189,9 +198,29 @@ const ListaCategorias = () => {
           <Text style={styles.selectedDateText}>{formatDate(date)}</Text>
         </View>
       </View>
-      <TouchableOpacity style={styles.addButton} onPress={handleCreateArticle}>
+      <TouchableOpacity style={styles.addButton} onPress={handleMoreOptionsPress}>
         <Ionicons name="add" size={24} color="#000033" />
       </TouchableOpacity>
+
+      {/* Modal de Opciones */}
+      <Modal
+        transparent={true}
+        visible={modalVisible2}
+        animationType="slide"
+        onRequestClose={() => setModalVisible2(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setModalVisible2(false)}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={styles.modalContainer2}>
+          <TouchableOpacity style={styles.modalOption} onPress={handleCreateCategory}>
+            <Text style={styles.modalOptionText}>Crear Categoría</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalOption} onPress={handleCreateArticle}>
+            <Text style={styles.modalOptionText}>Crear Artículo</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
 
       <View style={{ marginTop: 20, paddingHorizontal: 10 }}>
         <FlatList
@@ -226,25 +255,17 @@ const ListaCategorias = () => {
         visible={modalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <TouchableOpacity
-          style={styles.modalBackground}
-          activeOpacity={1}
-          onPressOut={() => setModalVisible(false)}
-        >
-          <View style={[styles.modalContainer, { top: modalPosition.top, left: modalPosition.left }]}>
-            <View style={styles.modalContent}>
-              <TouchableOpacity style={styles.modalButton} onPress={handleEdit}>
-                <Ionicons name="create-outline" size={24} color="white" style={styles.modalIcon} />
-                <Text style={styles.modalButtonText}>Editar</Text>
-              </TouchableOpacity>
-              <View style={styles.separator} />
-              <TouchableOpacity style={styles.modalButton} onPress={handleDelete}>
-                <Ionicons name="trash-outline" size={24} color="white" style={styles.modalIcon} />
-                <Text style={styles.modalButtonText}>Eliminar</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={styles.modalOverlay} />
+        </TouchableWithoutFeedback>
+        <View style={[styles.modalContainer, { top: modalPosition.top, left: modalPosition.left }]}>
+          <TouchableOpacity style={styles.modalOption} onPress={handleEdit}>
+            <Text style={styles.modalOptionText}>Editar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalOption} onPress={handleDelete}>
+            <Text style={styles.modalOptionText}>Eliminar</Text>
+          </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );
@@ -378,6 +399,27 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 16,
     color: 'white',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer2: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    padding: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  modalOption: {
+    paddingVertical: 15,
+  },
+  modalOptionText: {
+    fontSize: 18,
+    color: '#000033',
   },
   separator: {
     height: 1,

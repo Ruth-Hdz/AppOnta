@@ -3,9 +3,7 @@ import { View, StyleSheet, Text, TextInput, TouchableOpacity, Alert } from 'reac
 import { Ionicons } from '@expo/vector-icons';
 import Background2 from './Background2';
 import { useNavigation } from '@react-navigation/native';
-import { auth } from '../firebase-config'; // Asegúrate de que la ruta es correcta
-import { sendPasswordResetEmail } from 'firebase/auth'; // Importa sendPasswordResetEmail
-
+import BASE_URL from '../config';
 // Componente principal para la pantalla de recuperación de contraseña
 const RecuperarContrasena = () => {
   const [correo, setCorreo] = useState(''); // Estado para almacenar el correo electrónico del usuario
@@ -26,9 +24,23 @@ const RecuperarContrasena = () => {
   const handleRecuperarContrasena = async () => {
     if (validarCorreo(correo)) {
       try {
-        await sendPasswordResetEmail(auth, correo);
-        Alert.alert('Correo enviado', 'Se ha enviado un correo electrónico para restablecer la contraseña.');
-        navigation.goBack(); // Opcional: Volver a la pantalla anterior después de enviar el correo
+        const response = await fetch(`${BASE_URL}/password_reset_request`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ correo_electronico: correo }),
+        });
+  
+        const data = await response.json();
+  
+        if (response.ok) {
+          Alert.alert('Correo enviado', data.message);
+          navigation.goBack();
+        } else {
+          Alert.alert('Error', data.error || 'Ha ocurrido un error al enviar el correo electrónico.');
+        }
       } catch (error) {
         console.error('Error al enviar el correo electrónico:', error);
         Alert.alert('Error', 'Ha ocurrido un error al enviar el correo electrónico.');
@@ -37,6 +49,7 @@ const RecuperarContrasena = () => {
       Alert.alert('Error', 'Por favor, introduce un correo electrónico válido.');
     }
   };
+  
 
   return (
     <View style={styles.container}>

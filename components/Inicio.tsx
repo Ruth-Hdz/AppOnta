@@ -19,7 +19,6 @@ interface Category {
 
 const Inicio = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const [modalVisible, setModalVisible] = useState(false);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -63,17 +62,15 @@ const Inicio = () => {
   };
 
   const handleMoreOptionsPress = () => {
-    setModalVisible(true);
+    navigation.navigate('ListaCategorias');
   };
-
-  const handleCreateCategory = () => {
-    setModalVisible(false);
-    navigation.navigate('CrearCategoria');
-  };
-
-  const handleCreateArticle = () => {
-    setModalVisible(false);
-    navigation.navigate('CrearArticulo');
+  
+  const handleCategoryPress = (categoryId: number, categoryTitle: string, categoryColor: string) => {
+    navigation.navigate('CategoriaSeleccionada', { 
+      categoryId: categoryId.toString(),
+      categoryTitle,
+      categoryColor 
+    });
   };
 
   const handleDeleteCategory = (categoryId: number) => {
@@ -120,10 +117,6 @@ const Inicio = () => {
     }
   };
 
-  const handleCategoryPress = (categoryId: number, categoryTitle: string) => {
-    navigation.navigate('ListaCategorias', { categoryId: categoryId.toString(), categoryTitle });
-  };
-  
   return (
     <View style={styles.container}>
       <Background />
@@ -154,55 +147,34 @@ const Inicio = () => {
       </View>
 
       <FlatList
-  data={categories}
-  renderItem={({ item }) => (
-    <View style={[styles.categoryItem, { backgroundColor: item.color }]}>
-      <TouchableOpacity
-        style={styles.categoryContent}
-        onPress={() => handleCategoryPress(item.id, item.nombre)}
-      >
-        <Ionicons name={item.icono} size={32} color="#ffffff" style={styles.categoryIcon} />
-        <View style={styles.categoryTextContainer}>
-          <Text style={styles.categoryTitle}>{item.nombre}</Text>
-          <Text style={styles.categoryArticlesCount}>{item.numero_articulos} artículos</Text>
-        </View>
-      </TouchableOpacity>
-      <View style={styles.categoryIcons}>
-        <TouchableOpacity onPress={handleCreateArticle}>
-          <Ionicons name="add" size={24} color="#ffffff" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
-          <Ionicons name="trash" size={24} color="#ffffff" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  )}
-  keyExtractor={(item) => item.id.toString()}
-  numColumns={2}
-  contentContainerStyle={styles.categoriesList}
-  extraData={categories}
-/>
-
-
-      {/* Modal de Opciones */}
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
-          <View style={styles.modalOverlay} />
-        </TouchableWithoutFeedback>
-        <View style={styles.modalContainer}>
-          <TouchableOpacity style={styles.modalOption} onPress={handleCreateCategory}>
-            <Text style={styles.modalOptionText}>Crear Categoría</Text>
+        data={categories}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.categoryItem, { backgroundColor: item.color }]}
+            onPress={() => handleCategoryPress(item.id, item.nombre, item.color)}
+          >
+            <View style={styles.categoryContent}>
+              <Ionicons name={item.icono} size={32} color="#ffffff" style={styles.categoryIcon} />
+              <View style={styles.categoryTextContainer}>
+                <Text style={styles.categoryTitle}>{item.nombre}</Text>
+                <Text style={styles.categoryArticlesCount}>{item.numero_articulos} artículos</Text>
+              </View>
+            </View>
+            <View style={styles.categoryIcons}>
+              <TouchableOpacity onPress={() => navigation.navigate('CrearArticulo')}>
+                <Ionicons name="add" size={24} color="#ffffff" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeleteCategory(item.id)}>
+                <Ionicons name="trash" size={24} color="#ffffff" />
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.modalOption} onPress={handleCreateArticle}>
-            <Text style={styles.modalOptionText}>Crear Artículo</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
+        )}
+        keyExtractor={(item) => item.id.toString()}
+        numColumns={2}
+        contentContainerStyle={styles.categoriesList}
+        extraData={categories}
+      />
 
       {/* Modal de Confirmación para Eliminar Categoría */}
       <Modal
@@ -231,6 +203,7 @@ const Inicio = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -311,20 +284,16 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   categoryTextContainer: {
-    flexDirection: 'column',
+    flex: 1,
   },
   categoryTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#ffffff',
-    textAlign: 'left',
-    marginBottom: 5,
   },
   categoryArticlesCount: {
     fontSize: 14,
     color: '#ffffff',
-    marginTop: 5,
-    textAlign: 'left',
   },
   categoryIcons: {
     flexDirection: 'row',
@@ -334,68 +303,50 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#fff',
-    padding: 20,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  modalOption: {
-    paddingVertical: 15,
-  },
-  modalOptionText: {
-    fontSize: 18,
-    color: '#000033',
-  },
   confirmModalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   confirmModalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     padding: 20,
     borderRadius: 10,
-    width: '80%',
+    width: 300,
     alignItems: 'center',
   },
   confirmModalText: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 16,
     marginBottom: 20,
-    textAlign: 'center',
   },
   confirmModalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     width: '100%',
   },
   confirmButton: {
-    backgroundColor: '#FE3777',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#ff4d4d',
+    padding: 10,
     borderRadius: 5,
+    flex: 1,
+    marginRight: 10,
+    alignItems: 'center',
   },
   confirmButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: 'bold',
   },
   cancelButton: {
-    backgroundColor: '#0270D0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#cccccc',
+    padding: 10,
     borderRadius: 5,
+    flex: 1,
+    alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#000000',
+    fontWeight: 'bold',
   },
 });
 
 export default Inicio;
-
