@@ -62,8 +62,9 @@ const ListaCategorias = () => {
   };
 
   const handleBack = () => {
-    navigation.goBack();
+    navigation.navigate('Inicio');
   };
+  
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
