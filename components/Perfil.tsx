@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#ffffff',
-    marginBottom: 50,
+    marginBottom: 40,
   },
   instructions: {
     color: '#FFFFFF',
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   logoutButtonContainer: {
     alignItems: 'flex-end',
-    marginTop: 150,
+    marginTop: 10,
     marginRight: 0,
   },
   logoutButton: {

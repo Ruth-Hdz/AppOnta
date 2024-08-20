@@ -12,4 +12,5 @@ export type RootStackParamList = {
   CategoriaSeleccionada: { categoryId: string; categoryTitle: string; categoryColor: string };
   EditarArticulo: { articleId: string; articleTitle: string; onSave: (id: string, newTitle: string) => void };
   Buscar: undefined;
+  ArticulosPorFecha: any;
 };

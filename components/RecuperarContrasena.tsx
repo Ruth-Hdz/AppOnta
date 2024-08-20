@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Background2 from './Background2';
 import { useNavigation } from '@react-navigation/native';
 import BASE_URL from '../config';
+
 // Componente principal para la pantalla de recuperación de contraseña
 const RecuperarContrasena = () => {
   const [correo, setCorreo] = useState(''); // Estado para almacenar el correo electrónico del usuario
@@ -14,18 +15,11 @@ const RecuperarContrasena = () => {
     navigation.goBack();
   };
 
-  // Función para validar el formato del correo electrónico
-  const validarCorreo = (email: string) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return regex.test(email);
-  };
-
-  // Manejo del botón para la recuperación de contraseña
+  
   const handleRecuperarContrasena = async () => {
-    if (validarCorreo(correo)) {
+    if ((correo)) {
       try {
-        const response = await fetch(`${BASE_URL}/password_reset_request`,
-        {
+        const response = await fetch(`${BASE_URL}/forgot-password`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -36,20 +30,22 @@ const RecuperarContrasena = () => {
         const data = await response.json();
   
         if (response.ok) {
-          Alert.alert('Correo enviado', data.message);
-          navigation.goBack();
+          Alert.alert(
+            'Correo enviado',
+            'Se ha enviado un correo electrónico con instrucciones para restablecer tu contraseña. Por favor, revisa tu bandeja de entrada.',
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          );
         } else {
           Alert.alert('Error', data.error || 'Ha ocurrido un error al enviar el correo electrónico.');
         }
       } catch (error) {
         console.error('Error al enviar el correo electrónico:', error);
-        Alert.alert('Error', 'Ha ocurrido un error al enviar el correo electrónico.');
+        Alert.alert('Error', 'Ha ocurrido un error al conectar con el servidor. Por favor, inténtalo de nuevo más tarde.');
       }
     } else {
       Alert.alert('Error', 'Por favor, introduce un correo electrónico válido.');
     }
   };
-  
 
   return (
     <View style={styles.container}>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, ActivityIndicator, TouchableWithoutFeedback, TextInput } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, ActivityIndicator, TextInput, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
@@ -19,43 +19,37 @@ const ListaCategorias = () => {
 
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [starredArticles, setStarredArticles] = useState<string[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [modalVisible2, setModalVisible2] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
-  const [categories, setCategories] = useState<{ id: string; nombre: string; color: string }[]>([]);
-  const [articles, setArticles] = useState<{ id: string; titulo: string; id_categoria: string; prioridad: string }[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [modalVisible2, setModalVisible2] = useState(false);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingArticle, setEditingArticle] = useState({ id: '', title: '' });
-  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [categories, setCategories] = useState<{ id: string; nombre: string; color: string }[]>([]);
+  const [articles, setArticles] = useState<{ id: string; titulo: string; id_categoria: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setLoading(true);
-        const storedUserId = await AsyncStorage.getItem('userId');
-        setUserId(storedUserId);
+        setLoading(true); // Agrega esto para mostrar un indicador de carga
+        const userId = await AsyncStorage.getItem('userId');
         
-        if (!storedUserId) {
+        if (!userId) {
           throw new Error('No se encontró el ID del usuario');
         }
   
-        // Obtener categorías
-        const categoriesResponse = await fetch(`${BASE_URL}/user/${storedUserId}`);
-        if (!categoriesResponse.ok) {
-          throw new Error('Network response was not ok for categories');
+        const response = await fetch(`${BASE_URL}/user/${userId}`);
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
         }
-        const categoriesData = await categoriesResponse.json();
-        setCategories(categoriesData.categories || []);
-  
-        // Obtener artículos priorizados
-        const articlesResponse = await fetch(`${BASE_URL}/articles/priority?id_usuario=${storedUserId}`);
-        if (!articlesResponse.ok) {
-          throw new Error('Network response was not ok for articles');
-        }
-        const articlesData = await articlesResponse.json();
-        setArticles(articlesData || []);
+        
+        const data = await response.json();
+        setCategories(data.categories || []);
+        setArticles(data.articles || []);
       } catch (error) {
         console.error('Error al obtener datos del usuario:', error);
       } finally {
@@ -65,7 +59,8 @@ const ListaCategorias = () => {
   
     fetchUserData();
   }, []);
-      
+  
+
   const handleMenuPress = () => {
     navigation.navigate('Perfil');
   };
@@ -74,24 +69,11 @@ const ListaCategorias = () => {
     navigation.navigate('Inicio');
   };
   
+
   const handleDateChange = (event: any, selectedDate?: Date) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(false);
     setDate(currentDate);
-
-    // Navegar a ArticuloPorFecha con la fecha seleccionada
-    navigation.navigate('ArticulosPorFecha', { selectedDate: currentDate.toISOString().split('T')[0] });
-  };
-
-  const handleEdit = () => {
-    if (selectedArticle) {
-      const article = articles.find(a => a.id === selectedArticle);
-      if (article) {
-        setEditingArticle({ id: selectedArticle, title: article.titulo });
-        setEditModalVisible(true);
-      }
-    }
-    setModalVisible(false);
   };
 
   const showDatePickerModal = () => {
@@ -120,7 +102,11 @@ const ListaCategorias = () => {
     </TouchableOpacity>
   );
 
-
+  const toggleStarred = (id: string) => {
+    setStarredArticles((prevStarred) => 
+      prevStarred.includes(id) ? prevStarred.filter(item => item !== id) : [...prevStarred, id]
+    );
+  };
 
   const handleMoreOptionsPress = () => {
     setModalVisible2(true);
@@ -132,7 +118,6 @@ const ListaCategorias = () => {
   };
 
   const handleCreateArticle = () => {
-    setModalVisible2(false);
     navigation.navigate('CrearArticulo');
   };
 
@@ -147,49 +132,51 @@ const ListaCategorias = () => {
     setModalVisible(true);
   };
 
+  const handleEdit = async () => {
+    if (selectedArticle && selectedArticle) {
+      setEditingArticle({ id: selectedArticle, title: '' });
+      setEditModalVisible(true);
+    }
+    setModalVisible(true);
+  };
+
   const handleSaveEdit = async () => {
-    if (!userId || !editingArticle.id) return;
     try {
-      const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(`${BASE_URL}/articles/${editingArticle.id}`, {
         method: 'PUT',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Asegúrate de incluir el token si es necesario
+          'Content-Type': 'application/json' 
         },
         body: JSON.stringify({ 
-          titulo: editingArticle.title
+          titulo: editingArticle.title 
         }),
       });  
-      
-      if (response.ok) {
-        const result = await response.json();
+      const result = await response.json();
+      if (response.ok){
         setArticles((prevArticles) =>
           prevArticles.map((article) =>
-            article.id === editingArticle.id
-              ? { ...article, titulo: editingArticle.title }
-              : article
+              article.id === editingArticle.id
+                  ? { ...article, titulo: editingArticle.title }
+                  : article
           )
-        );
-        setEditModalVisible(false);
+      );
+      console.log('Edit', selectedArticle);
+      setEditModalVisible(false);
       } else {
-        const errorData = await response.json();
-        console.error('Error al editar el artículo:', errorData);
-        // Aquí puedes mostrar un mensaje de error al usuario
+        console.error('Error al editar el artículo');
       }
-    } catch (error) {
-      console.error('Error al editar el artículo:', error);
-      // Aquí puedes mostrar un mensaje de error al usuario
+    } catch {
+      console.error('Error al editar el artículo');
     }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setModalVisible(false);
     setConfirmModalVisible(true);
   };
 
   const confirmDeleteArticle = async () => {
-    if (!selectedArticle || !userId) return;
+    if(!selectedArticle) return;
     try {
       const response = await fetch(`${BASE_URL}/articles/${selectedArticle}`, {
         method: 'DELETE',
@@ -197,63 +184,32 @@ const ListaCategorias = () => {
           'Content-Type': 'application/json',
         },
       });
-      if (response.ok) {
-        setArticles(articles.filter(article => article.id !== selectedArticle));
+      if(response.status === 204)  {
+        setArticles(articles.filter(article => article.id!== selectedArticle));
         setSelectedArticle(null);
+        console.log('Deleted', selectedArticle);
         setConfirmModalVisible(false);
       } else {
         console.error('Error al eliminar el artículo');
       }
-    } catch (error) {
-      console.error('Error al eliminar el artículo:', error);
+    } catch {
+      console.error('Error al eliminar el artículo');
     }
   };
 
   const cancelDeleteArticle = () => {
     setConfirmModalVisible(false);
   };
-  const handleStarPress = async (articleId: string, currentPriority: string) => {
-    const newPriority = currentPriority === "Sí" ? false : true;
-    try {
-      const token = await AsyncStorage.getItem('userToken');
-      const response = await fetch(`${BASE_URL}/articles/${articleId}/priority`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          prioridad: newPriority,
-        }),
-      });
-  
-      if (response.ok) {
-        const result = await response.json();
-        setArticles((prevArticles) =>
-          prevArticles.map((article) =>
-            article.id === articleId
-              ? { ...article, prioridad: newPriority ? "Sí" : "No" }
-              : article
-          )
-        );
-      } else {
-        const errorData = await response.json();
-        console.error('Error al actualizar la prioridad del artículo:', errorData);
-      }
-    } catch (error) {
-      console.error('Error al actualizar la prioridad del artículo:', error);
-    }
-  };
 
-  const renderArticleItem = ({ item }: { item: { id: string; titulo: string; prioridad: string } }) => (
+  const renderArticleItem = ({ item }) => (
     <View style={styles.articleItem}>
       <Text style={styles.articleTitle}>{item.titulo}</Text>
       <View style={styles.articleActions}>
-        <TouchableOpacity onPress={() => handleStarPress(item.id, item.prioridad)}>
-          <Ionicons
-            name={item.prioridad === "Sí" ? "star" : "star-outline"}
-            size={24}
-            color="#FE9526"
+        <TouchableOpacity onPress={() => toggleStarred(item.id)}>
+          <Ionicons 
+            name={starredArticles.includes(item.id) ? "star" : "star-outline"} 
+            size={24} 
+            color="#FE9526" 
             style={styles.starIcon}
           />
         </TouchableOpacity>
@@ -266,8 +222,10 @@ const ListaCategorias = () => {
 
   const getSortedArticles = () => {
     return articles.sort((a, b) => {
-      if (a.prioridad === "Sí" && b.prioridad !== "Sí") return -1;
-      if (a.prioridad !== "Sí" && b.prioridad === "Sí") return 1;
+      const aStarred = starredArticles.includes(a.id);
+      const bStarred = starredArticles.includes(b.id);
+      if (aStarred && !bStarred) return -1;
+      if (!aStarred && bStarred) return 1;
       return 0;
     });
   };
@@ -275,8 +233,7 @@ const ListaCategorias = () => {
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
-  
-  
+
   return (
     <View style={styles.container}>
       <Background2 />
@@ -308,8 +265,8 @@ const ListaCategorias = () => {
         <Ionicons name="add" size={24} color="#000033" />
       </TouchableOpacity>
 
-       {/* Modal de Opciones */}
-       <Modal
+      {/* Modal de Opciones */}
+      <Modal
         transparent={true}
         visible={modalVisible2}
         animationType="slide"
@@ -342,7 +299,7 @@ const ListaCategorias = () => {
       <FlatList
         data={getSortedArticles()}
         renderItem={renderArticleItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         contentContainerStyle={styles.articleList}
       />
 
@@ -465,15 +422,14 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'flex-start',
-    marginTop: 90, // Ajusta este valor para alinear mejor con la flecha
+    marginTop: 100,
     marginLeft: 20,
   },
   appTitle: {
     color: 'white',
-    fontSize: 24, // Ajusta el tamaño de fuente según sea necesario
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'left',
-    lineHeight: 32, // Puedes ajustar esto para mejorar la alineación
   },
   dateContainer: {
     flexDirection: 'row',
@@ -545,46 +501,6 @@ const styles = StyleSheet.create({
   starIcon: {
     marginRight: 10,
   },
-  cancelButtonText: {
-    color: '#000000',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  confirmModalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  confirmModalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: '80%',
-    alignItems: 'center',
-  },
-  confirmModalText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  confirmModalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '90%',
-    borderRadius: 10,
-  },
-  confirmButton: {
-    backgroundColor: '#ff4d4d',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
-  confirmButtonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
   modalBackground: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -628,12 +544,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
   },
-  cancelButton: {
-    backgroundColor: '#cccccc',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
-  },
   modalOption: {
     paddingVertical: 15,
   },
@@ -646,6 +556,52 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     alignSelf: 'stretch',
     marginVertical: 5,
+  },
+  confirmModalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  confirmModalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  confirmModalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  confirmModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '90%',
+    borderRadius: 10,
+  },
+  confirmButton: {
+    backgroundColor: '#ff4d4d',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  confirmButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  cancelButton: {
+    backgroundColor: '#cccccc',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+  },
+  cancelButtonText: {
+    color: '#000000',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   editModalContainer: {
     flex: 1,
@@ -692,6 +648,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
 
 export default ListaCategorias;

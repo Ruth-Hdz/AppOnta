@@ -15,6 +15,7 @@ import CrearArticulo from './components/CrearArticulo';
 import ListaCategorias from './components/ListaCategorias';
 import CategoriaSeleccionada from './components/CategoriaSeleccionada';
 import Buscar from './components/Buscar';
+import ArticulosPorFecha from './components/ArticulosPorFecha'
 
 const Stack = createNativeStackNavigator();
 
@@ -75,6 +76,11 @@ export default function App() {
         <Stack.Screen
           name="Buscar"
           component={Buscar}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ArticulosPorFecha"
+          component={ArticulosPorFecha}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

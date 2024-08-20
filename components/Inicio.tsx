@@ -34,10 +34,29 @@ const Inicio = () => {
       }
 
       if (userId) {
-        const response = await fetch(`${BASE_URL}/user/${userId}`);
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data.categories || []);
+        // Obtener categorías del usuario
+        const categoriesResponse = await fetch(`${BASE_URL}/user/${userId}`);
+        if (categoriesResponse.ok) {
+          const categoriesData = await categoriesResponse.json();
+          
+          // Obtener conteo de artículos por categoría
+          const articleCountResponse = await fetch(`${BASE_URL}/categories/article-count/${userId}`);
+          if (articleCountResponse.ok) {
+            const articleCountData = await articleCountResponse.json();
+            
+            // Combinar datos de categorías con el conteo de artículos
+            const updatedCategories = categoriesData.categories.map((category: { nombre: any; }) => {
+              const articleCount = articleCountData.find((item: { Categoria: any; }) => item.Categoria === category.nombre);
+              return {
+                ...category,
+                numero_articulos: articleCount ? articleCount.NumeroDeArticulos : 0
+              };
+            });
+            
+            setCategories(updatedCategories);
+          } else {
+            console.error('Error al obtener el conteo de artículos');
+          }
         } else {
           console.error('Error al obtener las categorías del servidor');
         }
@@ -64,14 +83,15 @@ const Inicio = () => {
   const handleMoreOptionsPress = () => {
     navigation.navigate('ListaCategorias');
   };
+
+ const handleCategoryPress = (categoryId: number, categoryTitle: string, categoryColor: string) => {
+  navigation.navigate('CategoriaSeleccionada', {
+    categoryId: categoryId.toString(),
+    categoryTitle,
+    categoryColor
+  });
+};
   
-  const handleCategoryPress = (categoryId: number, categoryTitle: string, categoryColor: string) => {
-    navigation.navigate('CategoriaSeleccionada', { 
-      categoryId: categoryId.toString(),
-      categoryTitle,
-      categoryColor 
-    });
-  };
 
   const handleDeleteCategory = (categoryId: number) => {
     setSelectedCategoryId(categoryId);
@@ -105,7 +125,7 @@ const Inicio = () => {
     if (selectedCategoryId !== null) {
       try {
         await deleteCategory(selectedCategoryId);
-        setCategories(prevCategories => 
+        setCategories(prevCategories =>
           prevCategories.filter(category => category.id !== selectedCategoryId)
         );
       } catch (error) {
@@ -271,33 +291,35 @@ const styles = StyleSheet.create({
     width: (width - 60) / 2,
     height: (width - 60) / 2,
     margin: 10,
-    padding: 20,
+    padding: 10,
     borderRadius: 10,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   categoryContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+    flexDirection: 'column',
+    alignItems: 'flex-start',  },
   categoryIcon: {
-    marginRight: 10,
-    marginBottom: 10
+    marginBottom: 10,
   },
   categoryTextContainer: {
-    flex: 1,
+    alignItems: 'center',
+ 
   },
   categoryTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#ffffff',
+    textAlign: 'center',
   },
   categoryArticlesCount: {
     fontSize: 14,
     color: '#ffffff',
+    textAlign: 'center',
   },
   categoryIcons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: 10,
   },
   modalOverlay: {
     flex: 1,

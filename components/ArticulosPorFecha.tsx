@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text, FlatList, Dimensions, Modal, ActivityIndicator, TouchableWithoutFeedback, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native'; // Importa useRoute aquí
 import { StackNavigationProp } from '@react-navigation/stack';
 import Background2 from './Background2';
 import BASE_URL from '../config';
@@ -14,73 +14,58 @@ import { RootStackParamList } from './types';
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Perfil'>;
 
-const ListaCategorias = () => {
+const ArticulosPorFecha = () => {
   const navigation = useNavigation<ProfileScreenNavigationProp>();
-
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const route = useRoute(); // Añade esta línea para obtener los parámetros de la ruta
+  const { selectedDate } = route.params as { selectedDate: string };
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<string | null>(null);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
-  const [categories, setCategories] = useState<{ id: string; nombre: string; color: string }[]>([]);
-  const [articles, setArticles] = useState<{ id: string; titulo: string; id_categoria: string; prioridad: string }[]>([]);
+  const [articles, setArticles] = useState<{ id: string; titulo: string; prioridad: string }[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modalVisible2, setModalVisible2] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingArticle, setEditingArticle] = useState({ id: '', title: '' });
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+
   useEffect(() => {
-    const fetchUserData = async () => {
+    console.log(articles); // Revisa si todos los artículos tienen un id definido
+
+    const fetchArticlesByDate = async () => {
       try {
         setLoading(true);
         const storedUserId = await AsyncStorage.getItem('userId');
         setUserId(storedUserId);
-        
+    
         if (!storedUserId) {
           throw new Error('No se encontró el ID del usuario');
         }
-  
-        // Obtener categorías
-        const categoriesResponse = await fetch(`${BASE_URL}/user/${storedUserId}`);
-        if (!categoriesResponse.ok) {
-          throw new Error('Network response was not ok for categories');
-        }
-        const categoriesData = await categoriesResponse.json();
-        setCategories(categoriesData.categories || []);
-  
-        // Obtener artículos priorizados
-        const articlesResponse = await fetch(`${BASE_URL}/articles/priority?id_usuario=${storedUserId}`);
-        if (!articlesResponse.ok) {
+    
+        const response = await fetch(`${BASE_URL}/search_articles_by_date/${storedUserId}?fecha=${selectedDate}`);
+        if (!response.ok) {
           throw new Error('Network response was not ok for articles');
         }
-        const articlesData = await articlesResponse.json();
-        setArticles(articlesData || []);
+        const articlesData = await response.json();
+        
+        // Mapear los datos recibidos al formato esperado por el componente
+        const mappedArticles = articlesData.map((article: { articulo: any; prioridad: any; }, index: { toString: () => any; }) => ({
+          id: index.toString(), // Usar el índice como ID temporal
+          titulo: article.articulo,
+          prioridad: article.prioridad
+        }));
+        
+        setArticles(mappedArticles || []);
       } catch (error) {
-        console.error('Error al obtener datos del usuario:', error);
+        console.error('Error al obtener artículos por fecha:', error);
       } finally {
         setLoading(false);
       }
     };
-  
-    fetchUserData();
-  }, []);
-      
-  const handleMenuPress = () => {
-    navigation.navigate('Perfil');
-  };
+    fetchArticlesByDate();
+  }, [selectedDate]);
 
   const handleBack = () => {
-    navigation.navigate('Inicio');
-  };
-  
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || date;
-    setShowDatePicker(false);
-    setDate(currentDate);
-
-    // Navegar a ArticuloPorFecha con la fecha seleccionada
-    navigation.navigate('ArticulosPorFecha', { selectedDate: currentDate.toISOString().split('T')[0] });
+    navigation.navigate('ListaCategorias');
   };
 
   const handleEdit = () => {
@@ -94,55 +79,13 @@ const ListaCategorias = () => {
     setModalVisible(false);
   };
 
-  const showDatePickerModal = () => {
-    setShowDatePicker(true);
-  };
-
-  const formatDate = (date: Date): string => {
-    const options: Intl.DateTimeFormatOptions = {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    };
-    return date.toLocaleDateString('es-ES', options);
-  };
-
-  const renderCategoryItem = ({ item }: { item: { id: string; nombre: string; color: string } }) => (
-    <TouchableOpacity 
-      style={[styles.categoryItem, { backgroundColor: item.color }]} 
-      onPress={() => navigation.navigate('CategoriaSeleccionada', { 
-        categoryId: item.id,
-        categoryTitle: item.nombre,
-        categoryColor: item.color 
-      })}
-    >
-      <Text style={styles.categoryTitle}>{item.nombre}</Text>
-    </TouchableOpacity>
-  );
-
-
-
-  const handleMoreOptionsPress = () => {
-    setModalVisible2(true);
-  };
-
-  const handleCreateCategory = () => {
-    setModalVisible2(false);
-    navigation.navigate('CrearCategoria');
-  };
-
-  const handleCreateArticle = () => {
-    setModalVisible2(false);
-    navigation.navigate('CrearArticulo');
-  };
-
   const handleEllipsisPress = (id: string, y: number, x: number) => {
     setSelectedArticle(id);
-  
+
     const { height, width } = Dimensions.get('window');
     const adjustedX = Math.max(10, Math.min(x - 60, width - 170));
     const adjustedY = Math.max(10, y - 50);
-  
+
     setModalPosition({ top: adjustedY, left: adjustedX });
     setModalVisible(true);
   };
@@ -153,15 +96,15 @@ const ListaCategorias = () => {
       const token = await AsyncStorage.getItem('userToken');
       const response = await fetch(`${BASE_URL}/articles/${editingArticle.id}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` // Asegúrate de incluir el token si es necesario
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           titulo: editingArticle.title
         }),
-      });  
-      
+      });
+
       if (response.ok) {
         const result = await response.json();
         setArticles((prevArticles) =>
@@ -212,6 +155,7 @@ const ListaCategorias = () => {
   const cancelDeleteArticle = () => {
     setConfirmModalVisible(false);
   };
+
   const handleStarPress = async (articleId: string, currentPriority: string) => {
     const newPriority = currentPriority === "Sí" ? false : true;
     try {
@@ -244,7 +188,7 @@ const ListaCategorias = () => {
       console.error('Error al actualizar la prioridad del artículo:', error);
     }
   };
-
+  
   const renderArticleItem = ({ item }: { item: { id: string; titulo: string; prioridad: string } }) => (
     <View style={styles.articleItem}>
       <Text style={styles.articleTitle}>{item.titulo}</Text>
@@ -275,8 +219,8 @@ const ListaCategorias = () => {
   if (loading) {
     return <ActivityIndicator size="large" color="#0000ff" />;
   }
-  
-  
+
+
   return (
     <View style={styles.container}>
       <Background2 />
@@ -284,77 +228,17 @@ const ListaCategorias = () => {
         <TouchableOpacity style={styles.backButton} onPress={handleBack}>
           <Ionicons name="arrow-back" size={30} color="white" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.menuButton} onPress={handleMenuPress}>
-          <Ionicons name="menu" size={32} color="white" />
-        </TouchableOpacity>
       </View>
-      <View style={styles.titleContainer}>
-        <Text style={styles.appTitle}>
-          SEAMOS{'\n'}
-          PRODUCTIVOS{'\n'}
-          HOY
-        </Text>
-      </View>
-      <View style={styles.dateContainer}>
-        <View style={styles.dateInfoContainer}>
-          <TouchableOpacity onPress={showDatePickerModal}>
-            <Ionicons name="calendar-outline" size={24} color="white" />
-          </TouchableOpacity>
-          <Text style={styles.labelText}>Fecha:</Text>
-          <Text style={styles.selectedDateText}>{formatDate(date)}</Text>
-        </View>
-      </View>
-      <TouchableOpacity style={styles.addButton} onPress={handleMoreOptionsPress}>
-        <Ionicons name="add" size={24} color="#000033" />
-      </TouchableOpacity>
-
-       {/* Modal de Opciones */}
-       <Modal
-        transparent={true}
-        visible={modalVisible2}
-        animationType="slide"
-        onRequestClose={() => setModalVisible2(false)}
-      >
-        <TouchableWithoutFeedback onPress={() => setModalVisible2(false)}>
-          <View style={styles.modalOverlay} />
-        </TouchableWithoutFeedback>
-        <View style={styles.modalContainer2}>
-          <TouchableOpacity style={styles.modalOption} onPress={handleCreateCategory}>
-            <Text style={styles.modalOptionText}>Crear Categoría</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.modalOption} onPress={handleCreateArticle}>
-            <Text style={styles.modalOptionText}>Crear Artículo</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
-      <View style={{ marginTop: 20, paddingHorizontal: 10 }}>
+      <View style={styles.contentContainer}>
+        <Text style={styles.dateText}>Artículos para: {selectedDate}</Text>
         <FlatList
-          data={categories}
-          renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.id}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 10 }}
+          data={getSortedArticles()}
+          renderItem={renderArticleItem}
+          keyExtractor={(item) => item.id.toString()} // Verifica que item.id no sea undefined
+          contentContainerStyle={styles.articleList}
         />
+
       </View>
-
-      <FlatList
-        data={getSortedArticles()}
-        renderItem={renderArticleItem}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.articleList}
-      />
-
-      {showDatePicker && (
-        <DateTimePicker
-          value={date}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-        />
-      )}
-
       <Modal
         transparent={true}
         animationType="fade"
@@ -447,15 +331,21 @@ const ListaCategorias = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 100,
   },
   headerContainer: {
     position: 'absolute',
-    top: 50,
+    top: 50, // Ajusta este valor según sea necesario
     left: 20,
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 1, // Asegura que el header esté por encima de otros elementos
+  },
+  contentContainer: {
+    flex: 1,
+    marginTop: 10, // Añade un margen superior para separar del header
   },
   backButton: {
     marginRight: 10,
@@ -465,15 +355,15 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     alignItems: 'flex-start',
-    marginTop: 90, // Ajusta este valor para alinear mejor con la flecha
+    marginTop: 130, // Ajusta este valor para alinear el título con la flecha
     marginLeft: 20,
   },
   appTitle: {
     color: 'white',
-    fontSize: 24, // Ajusta el tamaño de fuente según sea necesario
+    fontSize: 24,
     fontWeight: 'bold',
     textAlign: 'left',
-    lineHeight: 32, // Puedes ajustar esto para mejorar la alineación
+    lineHeight: 32,
   },
   dateContainer: {
     flexDirection: 'row',
@@ -664,8 +554,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
-    color: '#000033', 
-  },  
+    color: '#000033',
+  },
   editInput: {
     height: 40,
     borderColor: '#000033',
@@ -673,8 +563,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
     borderRadius: 10,
-    color: '#000033', 
-
+    color: '#000033',
   },
   editModalButtons: {
     flexDirection: 'row',
@@ -684,14 +573,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#FE3777',
     padding: 10,
     borderRadius: 5,
-    width: '45%',  
-    alignItems: 'center',  
+    width: '45%',
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
   },
+  dateText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
 });
 
-
-export default ListaCategorias;
+export default ArticulosPorFecha;
