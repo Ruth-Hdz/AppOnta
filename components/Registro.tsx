@@ -36,12 +36,10 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
         setError('Por favor, completa todos los campos');
         return;
     }
-
     if (!aceptaTerminos) {
         setError('Debes aceptar los términos y condiciones');
         return;
     }
-
     try {
         const response = await fetch(`${BASE_URL}/register`, {
             method: 'POST',
@@ -55,15 +53,10 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
                 acepta_terminos: aceptaTerminos,
             }),
         });
-
         const data = await response.json();
-
         if (response.ok) {
             setSuccess('Usuario registrado exitosamente');
-            
-            // Redirige al usuario a la página de inicio de sesión
-            navigation.navigate('Login'); // Reemplaza 'Login' con el nombre de tu ruta de inicio de sesión
-            
+            navigation.navigate('Login');
         } else {
             setError(data.error || 'Error al registrar el usuario');
         }
@@ -72,6 +65,7 @@ const Registro: React.FC<RegistroProps> = ({ navigation }) => {
         setError('Error de conexión. Por favor, intenta más tarde.');
     }
 };
+
 
 
   return (
